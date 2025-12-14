@@ -179,7 +179,7 @@ Este projeto é proprietário. Todos os direitos reservados.
 
 ## 🤝 Suporte
 
-Para dúvidas ou suporte, consulte a documentação em `docs/` ou entre em contato através do site institucional.
+ispautopilot@gmail.com
 
 ---
 
