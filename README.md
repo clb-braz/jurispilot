@@ -94,34 +94,41 @@ D:\JurisPilot\
 
 ## 🛠️ Instalação
 
+### ⚡ Início Rápido (5 minutos)
+
+Consulte o [**QUICKSTART.md**](QUICKSTART.md) para começar rapidamente.
+
 ### Pré-requisitos
 
 - PostgreSQL 12+
 - Python 3.8+
 - Node.js 16+ (para n8n)
+- Git
 - Tesseract OCR (opcional, para processamento de imagens)
 
-### Setup Rápido
+### Setup Completo
 
-1. **Clone ou navegue até o diretório do projeto**
+1. **Clone o repositório**
    ```bash
-   cd D:\JurisPilot
+   git clone https://github.com/clb-braz/jurispilot.git
+   cd jurispilot
    ```
 
-2. **Execute o script de setup**
-   ```bash
-   bash scripts/setup.sh
+2. **Configure variáveis de ambiente**
+   ```powershell
+   # Windows PowerShell
+   Copy-Item .env.example .env
    ```
-   (No Windows, use Git Bash ou WSL)
+   Edite o arquivo `.env` com suas credenciais.
 
-3. **Configure o arquivo .env**
-   - Edite `.env` com suas credenciais de banco de dados e APIs
+3. **Execute o setup**
+   ```powershell
+   .\scripts\setup.ps1
+   ```
 
-4. **Crie o banco de dados**
-   ```bash
-   psql -U postgres -c 'CREATE DATABASE jurispilot;'
-   psql -U postgres -d jurispilot -f database/schema.sql
-   psql -U postgres -d jurispilot -f database/seeds/checklists_seed.sql
+4. **Configure o banco de dados**
+   ```powershell
+   .\scripts\setup-database.ps1
    ```
 
 5. **Inicie o n8n**
@@ -130,8 +137,20 @@ D:\JurisPilot\
    ```
 
 6. **Importe os workflows**
-   - Acesse http://localhost:5678
-   - Importe os workflows do diretório `n8n/workflows/`
+   ```powershell
+   .\scripts\import-workflows.ps1
+   ```
+
+7. **Inicie a API Python**
+   ```powershell
+   .\scripts\start-api.ps1
+   ```
+
+### Documentação Completa
+
+- 📖 [Guia Rápido](QUICKSTART.md) - Comece em 5 minutos
+- 📚 [Configuração Completa](docs/CONFIGURACAO_COMPLETA.md) - Guia detalhado
+- 🔗 [Integrações](docs/INTEGRACOES.md) - WhatsApp, Google Calendar, Email
 
 ## 📚 Documentação
 
