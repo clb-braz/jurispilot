@@ -1,121 +1,259 @@
 #!/bin/bash
-# JurisPilot - Script de Setup
-# Configura ambiente de desenvolvimento
+# ============================================
+# JurisPilot - Script de Setup Principal
+# ============================================
+# Este script configura o ambiente completo do JurisPilot
+# Execute após clonar o repositório: ./scripts/setup.sh
+# Compatível com: macOS, Linux
+# ============================================
 
 set -e
 
-echo "🚀 Configurando JurisPilot..."
-
 # Cores para output
+RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
+# Funções de output
+write_success() {
+    echo -e "${GREEN}✅ $1${NC}"
+}
+
+write_error() {
+    echo -e "${RED}❌ $1${NC}"
+}
+
+write_warning() {
+    echo -e "${YELLOW}⚠️  $1${NC}"
+}
+
+write_info() {
+    echo -e "${CYAN}ℹ️  $1${NC}"
+}
+
+write_step() {
+    echo -e "\n${MAGENTA}📋 $1${NC}"
+}
+
 # Verifica se está no diretório correto
-if [ ! -d "python" ] || [ ! -d "n8n" ] || [ ! -d "database" ]; then
-    echo "❌ Execute este script a partir do diretório raiz do JurisPilot"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+if [ ! -d "$PROJECT_ROOT/python" ] || [ ! -d "$PROJECT_ROOT/n8n" ] || [ ! -d "$PROJECT_ROOT/database" ]; then
+    write_error "Execute este script a partir do diretório raiz do JurisPilot"
+    write_info "Navegue até o diretório do projeto e execute: ./scripts/setup.sh"
     exit 1
 fi
 
-# 1. Configura Python
-echo -e "${YELLOW}📦 Configurando ambiente Python...${NC}"
-cd python
+cd "$PROJECT_ROOT"
 
-if [ ! -d "venv" ]; then
-    echo "Criando ambiente virtual Python..."
-    python3 -m venv venv
+echo -e "\n${CYAN}🚀 JurisPilot - Configuração do Ambiente${NC}"
+echo -e "${CYAN}========================================\n${NC}"
+
+# ============================================
+# 1. Verificar Pré-requisitos
+# ============================================
+write_step "Verificando pré-requisitos..."
+
+PREREQUISITES_OK=true
+
+# Verifica PostgreSQL
+if command -v psql &> /dev/null; then
+    PG_VERSION=$(psql --version | head -n1)
+    write_success "PostgreSQL encontrado: $PG_VERSION"
+else
+    write_warning "PostgreSQL não encontrado. Instale PostgreSQL 12+"
+    PREREQUISITES_OK=false
 fi
 
-echo "Ativando ambiente virtual..."
+# Verifica Python
+if command -v python3 &> /dev/null; then
+    PYTHON_VERSION=$(python3 --version)
+    write_success "Python encontrado: $PYTHON_VERSION"
+elif command -v python &> /dev/null; then
+    PYTHON_VERSION=$(python --version)
+    write_success "Python encontrado: $PYTHON_VERSION"
+    PYTHON_CMD="python"
+else
+    write_warning "Python não encontrado. Instale Python 3.8+"
+    PREREQUISITES_OK=false
+fi
+
+# Define comando Python
+if [ -z "$PYTHON_CMD" ]; then
+    PYTHON_CMD="python3"
+fi
+
+# Verifica Node.js
+if command -v node &> /dev/null; then
+    NODE_VERSION=$(node --version)
+    write_success "Node.js encontrado: $NODE_VERSION"
+else
+    write_warning "Node.js não encontrado. Instale Node.js 16+"
+    PREREQUISITES_OK=false
+fi
+
+# Verifica npm
+if command -v npm &> /dev/null; then
+    NPM_VERSION=$(npm --version)
+    write_success "npm encontrado: v$NPM_VERSION"
+else
+    write_warning "npm não encontrado"
+    PREREQUISITES_OK=false
+fi
+
+# Verifica n8n
+if command -v n8n &> /dev/null; then
+    N8N_VERSION=$(n8n --version 2>/dev/null || echo "installed")
+    write_success "n8n encontrado: $N8N_VERSION"
+else
+    write_info "n8n não encontrado. Instalando..."
+    if npm install -g n8n; then
+        write_success "n8n instalado com sucesso"
+    else
+        write_warning "Falha ao instalar n8n. Execute manualmente: npm install -g n8n"
+    fi
+fi
+
+# Resumo de pré-requisitos
+echo ""
+write_info "Resumo de pré-requisitos:"
+if [ "$PREREQUISITES_OK" = true ]; then
+    write_success "Todos os pré-requisitos estão instalados"
+else
+    write_warning "Alguns pré-requisitos estão faltando"
+fi
+
+# ============================================
+# 2. Configurar arquivo .env
+# ============================================
+write_step "Configurando arquivo .env..."
+
+if [ ! -f "$PROJECT_ROOT/.env" ]; then
+    if [ -f "$PROJECT_ROOT/.env.example" ]; then
+        cp "$PROJECT_ROOT/.env.example" "$PROJECT_ROOT/.env"
+        write_success "Arquivo .env criado a partir de .env.example"
+        write_warning "IMPORTANTE: Configure as variáveis no arquivo .env antes de continuar"
+    else
+        write_error "Arquivo .env.example não encontrado"
+        exit 1
+    fi
+else
+    write_info "Arquivo .env já existe"
+fi
+
+# ============================================
+# 3. Configurar Python
+# ============================================
+write_step "Configurando ambiente Python..."
+
+cd "$PROJECT_ROOT/python"
+
+# Cria ambiente virtual se não existir
+if [ ! -d "venv" ]; then
+    write_info "Criando ambiente virtual Python..."
+    $PYTHON_CMD -m venv venv
+    if [ $? -ne 0 ]; then
+        write_error "Falha ao criar ambiente virtual Python"
+        exit 1
+    fi
+    write_success "Ambiente virtual criado"
+fi
+
+# Ativa ambiente virtual
+write_info "Ativando ambiente virtual..."
 source venv/bin/activate
 
-echo "Instalando dependências Python..."
-pip install --upgrade pip
-pip install -r requirements.txt
+# Atualiza pip
+write_info "Atualizando pip..."
+pip install --upgrade pip --quiet
 
-echo -e "${GREEN}✅ Python configurado${NC}"
-cd ..
-
-# 2. Configura PostgreSQL
-echo -e "${YELLOW}🗄️  Configurando PostgreSQL...${NC}"
-echo "Por favor, certifique-se de que o PostgreSQL está instalado e rodando."
-echo "Execute o seguinte comando para criar o banco de dados:"
-echo ""
-echo "  psql -U postgres -c 'CREATE DATABASE jurispilot;'"
-echo ""
-echo "Depois, execute o schema:"
-echo "  psql -U postgres -d jurispilot -f database/schema.sql"
-echo ""
-echo "E os seeds:"
-echo "  psql -U postgres -d jurispilot -f database/seeds/checklists_seed.sql"
-echo ""
-
-# 3. Configura n8n
-echo -e "${YELLOW}⚙️  Configurando n8n...${NC}"
-if ! command -v n8n &> /dev/null; then
-    echo "n8n não encontrado. Instalando..."
-    npm install -g n8n
-fi
-
-echo "Criando diretório de dados do n8n..."
-mkdir -p ~/.n8n
-
-echo -e "${GREEN}✅ n8n configurado${NC}"
-
-# 4. Cria diretórios de storage
-echo -e "${YELLOW}📁 Criando diretórios de storage...${NC}"
-mkdir -p storage/documents
-mkdir -p storage/uploads
-chmod 755 storage/documents
-chmod 755 storage/uploads
-
-echo -e "${GREEN}✅ Diretórios criados${NC}"
-
-# 5. Cria arquivo .env de exemplo
-echo -e "${YELLOW}📝 Criando arquivo .env de exemplo...${NC}"
-if [ ! -f ".env" ]; then
-    cat > .env << EOF
-# JurisPilot - Variáveis de Ambiente
-
-# PostgreSQL
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=jurispilot
-DB_USER=postgres
-DB_PASSWORD=your_password_here
-
-# n8n
-N8N_HOST=localhost
-N8N_PORT=5678
-N8N_PROTOCOL=http
-
-# Storage
-STORAGE_PATH=./storage
-
-# WhatsApp API (quando configurado)
-WHATSAPP_API_URL=
-WHATSAPP_API_KEY=
-
-# Google Calendar (quando configurado)
-GOOGLE_CALENDAR_CLIENT_ID=
-GOOGLE_CALENDAR_CLIENT_SECRET=
-
-# Tesseract OCR (opcional)
-TESSERACT_PATH=
-EOF
-    echo -e "${GREEN}✅ Arquivo .env criado. Configure as variáveis necessárias.${NC}"
+# Instala dependências
+write_info "Instalando dependências Python..."
+if [ -f "requirements.txt" ]; then
+    pip install -r requirements.txt
+    if [ $? -eq 0 ]; then
+        write_success "Dependências Python instaladas"
+    else
+        write_error "Falha ao instalar dependências Python"
+        exit 1
+    fi
 else
-    echo "Arquivo .env já existe."
+    write_warning "Arquivo requirements.txt não encontrado"
 fi
 
-echo ""
-echo -e "${GREEN}✨ Setup concluído!${NC}"
-echo ""
-echo "Próximos passos:"
-echo "1. Configure o arquivo .env com suas credenciais"
-echo "2. Crie o banco de dados PostgreSQL e execute o schema"
-echo "3. Execute os seeds do banco de dados"
-echo "4. Inicie o n8n: n8n start"
-echo "5. Importe os workflows do diretório n8n/workflows"
-echo ""
+deactivate
+cd "$PROJECT_ROOT"
 
+# ============================================
+# 4. Criar diretórios de storage
+# ============================================
+write_step "Criando diretórios de storage..."
+
+DIRECTORIES=(
+    "storage/documents"
+    "storage/uploads"
+    "logs"
+    "backups"
+)
+
+for dir in "${DIRECTORIES[@]}"; do
+    FULL_PATH="$PROJECT_ROOT/$dir"
+    if [ ! -d "$FULL_PATH" ]; then
+        mkdir -p "$FULL_PATH"
+        write_success "Diretório criado: $dir"
+    else
+        write_info "Diretório já existe: $dir"
+    fi
+done
+
+# ============================================
+# 5. Configurar banco de dados (se não pular)
+# ============================================
+if [ "$1" != "--skip-database" ]; then
+    write_step "Configurando banco de dados PostgreSQL..."
+    
+    if command -v psql &> /dev/null; then
+        write_info "Execute o script de setup do banco de dados:"
+        echo -e "${YELLOW}  ./scripts/setup-database.sh${NC}"
+    else
+        write_warning "PostgreSQL não encontrado. Configure manualmente após instalar."
+    fi
+else
+    write_info "Pulando configuração do banco de dados (--skip-database)"
+fi
+
+# ============================================
+# 6. Configurar n8n (se não pular)
+# ============================================
+if [ "$1" != "--skip-n8n" ]; then
+    write_step "Configurando n8n..."
+    
+    if command -v n8n &> /dev/null; then
+        write_info "n8n está instalado. Para importar workflows, execute:"
+        echo -e "${YELLOW}  ./scripts/import-workflows.sh${NC}"
+        write_info "Certifique-se de que o n8n está rodando antes de importar workflows"
+    else
+        write_warning "n8n não encontrado. Instale com: npm install -g n8n"
+    fi
+else
+    write_info "Pulando configuração do n8n (--skip-n8n)"
+fi
+
+# ============================================
+# Resumo Final
+# ============================================
+echo -e "\n${GREEN}✨ Setup concluído!\n${NC}"
+echo -e "${CYAN}Próximos passos:${NC}"
+echo "  1. Configure o arquivo .env com suas credenciais"
+echo "  2. Execute: ./scripts/setup-database.sh (para configurar PostgreSQL)"
+echo "  3. Inicie o n8n: n8n start"
+echo "  4. Execute: ./scripts/import-workflows.sh (para importar workflows)"
+echo "  5. Inicie a API Python: ./scripts/start-api.sh"
+echo "  6. Execute: ./scripts/test-workflows.sh (para testar o sistema)"
+echo ""
+echo -e "${CYAN}📚 Documentação completa: docs/CONFIGURACAO_COMPLETA.md${NC}"
+echo ""

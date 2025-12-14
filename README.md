@@ -1,5 +1,9 @@
 # JurisPilot - Sistema de Automação Jurídica Operacional
 
+![Windows](https://img.shields.io/badge/Windows-Supported-0078D6?logo=windows)
+![macOS](https://img.shields.io/badge/macOS-Supported-000000?logo=apple)
+![Linux](https://img.shields.io/badge/Linux-Supported-FCC624?logo=linux)
+
 > Um escritório que nunca esquece documentos, nunca perde prazo e nunca atende mal um cliente.
 
 ## 🎯 Visão Geral
@@ -115,20 +119,47 @@ Consulte o [**QUICKSTART.md**](QUICKSTART.md) para começar rapidamente.
    ```
 
 2. **Configure variáveis de ambiente**
+
+   **Windows PowerShell:**
    ```powershell
-   # Windows PowerShell
    Copy-Item .env.example .env
    ```
+
+   **Mac/Linux:**
+   ```bash
+   cp .env.example .env
+   ```
+
    Edite o arquivo `.env` com suas credenciais.
 
 3. **Execute o setup**
+
+   **Windows PowerShell:**
    ```powershell
    .\scripts\setup.ps1
    ```
 
+   **Mac/Linux:**
+   ```bash
+   chmod +x scripts/*.sh
+   ./scripts/setup.sh
+   ```
+
+   **Ou use o wrapper universal (detecta OS automaticamente):**
+   ```bash
+   ./scripts/setup
+   ```
+
 4. **Configure o banco de dados**
+
+   **Windows PowerShell:**
    ```powershell
    .\scripts\setup-database.ps1
+   ```
+
+   **Mac/Linux:**
+   ```bash
+   ./scripts/setup-database.sh
    ```
 
 5. **Inicie o n8n**
@@ -137,13 +168,27 @@ Consulte o [**QUICKSTART.md**](QUICKSTART.md) para começar rapidamente.
    ```
 
 6. **Importe os workflows**
+
+   **Windows PowerShell:**
    ```powershell
    .\scripts\import-workflows.ps1
    ```
 
+   **Mac/Linux:**
+   ```bash
+   ./scripts/import-workflows.sh
+   ```
+
 7. **Inicie a API Python**
+
+   **Windows PowerShell:**
    ```powershell
    .\scripts\start-api.ps1
+   ```
+
+   **Mac/Linux:**
+   ```bash
+   ./scripts/start-api.sh
    ```
 
 ### Documentação Completa
@@ -151,6 +196,12 @@ Consulte o [**QUICKSTART.md**](QUICKSTART.md) para começar rapidamente.
 - 📖 [Guia Rápido](QUICKSTART.md) - Comece em 5 minutos
 - 📚 [Configuração Completa](docs/CONFIGURACAO_COMPLETA.md) - Guia detalhado
 - 🔗 [Integrações](docs/INTEGRACOES.md) - WhatsApp, Google Calendar, Email
+
+### Guias por Plataforma
+
+- 🪟 [Instalação no Windows](docs/INSTALACAO_WINDOWS.md) - Guia completo para Windows
+- 🍎 [Instalação no macOS](docs/INSTALACAO_MAC.md) - Guia completo para macOS
+- 🐧 [Instalação no Linux](docs/INSTALACAO_LINUX.md) - Guia completo para Linux
 
 ## 📚 Documentação
 

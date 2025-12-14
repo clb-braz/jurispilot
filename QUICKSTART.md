@@ -20,11 +20,13 @@ cd jurispilot
 
 ## Passo 2: Configurar Variáveis de Ambiente
 
-```bash
-# Windows PowerShell
+### Windows PowerShell
+```powershell
 Copy-Item .env.example .env
+```
 
-# Linux/Mac
+### Mac/Linux
+```bash
 cp .env.example .env
 ```
 
@@ -34,9 +36,20 @@ Edite o arquivo `.env` e configure pelo menos:
 
 ## Passo 3: Executar Setup
 
+### Windows PowerShell
 ```powershell
-# Windows PowerShell
 .\scripts\setup.ps1
+```
+
+### Mac/Linux
+```bash
+chmod +x scripts/*.sh
+./scripts/setup.sh
+```
+
+**Ou use o wrapper universal:**
+```bash
+./scripts/setup
 ```
 
 Este script irá:
@@ -47,8 +60,14 @@ Este script irá:
 
 ## Passo 4: Configurar Banco de Dados
 
+### Windows PowerShell
 ```powershell
 .\scripts\setup-database.ps1
+```
+
+### Mac/Linux
+```bash
+./scripts/setup-database.sh
 ```
 
 Este script irá:
@@ -68,24 +87,42 @@ Acesse: http://localhost:5678
 
 Em outro terminal, execute:
 
+### Windows PowerShell
 ```powershell
 .\scripts\import-workflows.ps1
+```
+
+### Mac/Linux
+```bash
+./scripts/import-workflows.sh
 ```
 
 ## Passo 7: Iniciar API Python
 
 Em outro terminal, execute:
 
+### Windows PowerShell
 ```powershell
 .\scripts\start-api.ps1
+```
+
+### Mac/Linux
+```bash
+./scripts/start-api.sh
 ```
 
 A API estará disponível em: http://localhost:5000
 
 ## Passo 8: Verificar Saúde do Sistema
 
+### Windows PowerShell
 ```powershell
 .\scripts\health-check.ps1
+```
+
+### Mac/Linux
+```bash
+./scripts/health-check.sh
 ```
 
 ## ✅ Pronto!
@@ -96,6 +133,12 @@ O sistema está configurado e rodando. Acesse:
 - **API Python**: http://localhost:5000
 - **Health Check**: http://localhost:5000/health
 
+## Guias por Plataforma
+
+- 🪟 [Instalação no Windows](docs/INSTALACAO_WINDOWS.md)
+- 🍎 [Instalação no macOS](docs/INSTALACAO_MAC.md)
+- 🐧 [Instalação no Linux](docs/INSTALACAO_LINUX.md)
+
 ## Próximos Passos
 
 1. 📖 Leia a [Documentação Completa](docs/CONFIGURACAO_COMPLETA.md)
@@ -104,9 +147,8 @@ O sistema está configurado e rodando. Acesse:
 
 ## Problemas?
 
-Consulte a seção de **Troubleshooting** na [Documentação Completa](docs/CONFIGURACAO_COMPLETA.md).
+Consulte a seção de **Troubleshooting** na [Documentação Completa](docs/CONFIGURACAO_COMPLETA.md) ou nos guias específicos por plataforma.
 
 ---
 
 **JurisPilot** - Automação Jurídica Operacional
-

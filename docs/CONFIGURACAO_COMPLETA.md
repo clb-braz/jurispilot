@@ -21,28 +21,92 @@ Guia passo a passo completo para configurar o sistema JurisPilot do zero.
 ### Software Necessário
 
 #### 1. PostgreSQL 12+
-- **Download**: https://www.postgresql.org/download/
-- **Windows**: Use o instalador oficial
-- **Linux**: `sudo apt-get install postgresql` (Ubuntu/Debian)
-- **Mac**: `brew install postgresql`
+
+**Windows:**
+- Download: https://www.postgresql.org/download/windows/
+- Use o instalador oficial
+- Marque "Add PostgreSQL to PATH" durante instalação
+
+**macOS:**
+```bash
+brew install postgresql@14
+brew services start postgresql@14
+```
+
+**Linux (Ubuntu/Debian):**
+```bash
+sudo apt update
+sudo apt install postgresql postgresql-contrib
+sudo systemctl start postgresql
+```
+
+**Linux (Fedora/CentOS):**
+```bash
+sudo dnf install postgresql-server postgresql-contrib
+sudo postgresql-setup --initdb
+sudo systemctl start postgresql
+```
 
 **Verificar instalação:**
 ```bash
 psql --version
 ```
 
+**Guias específicos:**
+- 🪟 [Instalação Windows](INSTALACAO_WINDOWS.md)
+- 🍎 [Instalação macOS](INSTALACAO_MAC.md)
+- 🐧 [Instalação Linux](INSTALACAO_LINUX.md)
+
 #### 2. Python 3.8+
-- **Download**: https://www.python.org/downloads/
-- Certifique-se de marcar "Add Python to PATH" durante instalação
+
+**Windows:**
+- Download: https://www.python.org/downloads/
+- ✅ **IMPORTANTE**: Marque "Add Python to PATH" durante instalação
+
+**macOS:**
+```bash
+brew install python@3.11
+```
+
+**Linux:**
+```bash
+# Ubuntu/Debian
+sudo apt install python3 python3-pip python3-venv
+
+# Fedora/CentOS
+sudo dnf install python3 python3-pip
+```
 
 **Verificar instalação:**
 ```bash
+# Windows
 python --version
+
+# Mac/Linux
+python3 --version
 ```
 
 #### 3. Node.js 16+
-- **Download**: https://nodejs.org/
+
+**Windows:**
+- Download: https://nodejs.org/
 - Instale a versão LTS
+
+**macOS:**
+```bash
+brew install node
+```
+
+**Linux:**
+```bash
+# Ubuntu/Debian
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# Fedora/CentOS
+curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
+sudo dnf install -y nodejs
+```
 
 **Verificar instalação:**
 ```bash
@@ -51,7 +115,23 @@ npm --version
 ```
 
 #### 4. Git
-- **Download**: https://git-scm.com/
+
+**Windows:**
+- Download: https://git-scm.com/download/win
+
+**macOS:**
+```bash
+brew install git
+```
+
+**Linux:**
+```bash
+# Ubuntu/Debian
+sudo apt install git
+
+# Fedora/CentOS
+sudo dnf install git
+```
 
 ---
 
@@ -68,11 +148,13 @@ cd jurispilot
 
 Copie o arquivo de exemplo:
 
-```bash
-# Windows PowerShell
+**Windows PowerShell:**
+```powershell
 Copy-Item .env.example .env
+```
 
-# Linux/Mac
+**Mac/Linux:**
+```bash
 cp .env.example .env
 ```
 
@@ -88,8 +170,20 @@ DB_PASSWORD=sua_senha_aqui
 
 ### 3. Executar Setup Inicial
 
+**Windows PowerShell:**
 ```powershell
 .\scripts\setup.ps1
+```
+
+**Mac/Linux:**
+```bash
+chmod +x scripts/*.sh
+./scripts/setup.sh
+```
+
+**Ou use o wrapper universal (detecta OS automaticamente):**
+```bash
+./scripts/setup
 ```
 
 Este script:
@@ -105,8 +199,14 @@ Este script:
 
 ### 1. Executar Setup do Banco
 
+**Windows PowerShell:**
 ```powershell
 .\scripts\setup-database.ps1
+```
+
+**Mac/Linux:**
+```bash
+./scripts/setup-database.sh
 ```
 
 O script irá:
@@ -118,8 +218,14 @@ O script irá:
 
 ### 2. Verificar Banco de Dados
 
+**Windows PowerShell:**
 ```powershell
 .\scripts\test-database.ps1
+```
+
+**Mac/Linux:**
+```bash
+./scripts/test-database.sh
 ```
 
 ### 3. Estrutura do Banco
@@ -142,16 +248,19 @@ O banco de dados contém as seguintes tabelas:
 
 ### 1. Ambiente Virtual
 
-O ambiente virtual é criado automaticamente pelo `setup.ps1`. Se precisar criar manualmente:
+O ambiente virtual é criado automaticamente pelo script de setup. Se precisar criar manualmente:
 
-```bash
+**Windows PowerShell:**
+```powershell
 cd python
 python -m venv venv
-
-# Windows
 .\venv\Scripts\Activate.ps1
+```
 
-# Linux/Mac
+**Mac/Linux:**
+```bash
+cd python
+python3 -m venv venv
 source venv/bin/activate
 ```
 
@@ -192,8 +301,14 @@ Acesse: http://localhost:5678
 
 ### 3. Importar Workflows
 
+**Windows PowerShell:**
 ```powershell
 .\scripts\import-workflows.ps1
+```
+
+**Mac/Linux:**
+```bash
+./scripts/import-workflows.sh
 ```
 
 Este script importa todos os workflows de `n8n/workflows/`.
@@ -212,16 +327,28 @@ No n8n, configure as credenciais:
 
 ### 1. Iniciar API em Desenvolvimento
 
+**Windows PowerShell:**
 ```powershell
 .\scripts\start-api.ps1
+```
+
+**Mac/Linux:**
+```bash
+./scripts/start-api.sh
 ```
 
 A API estará disponível em: http://localhost:5000
 
 ### 2. Iniciar API em Produção
 
+**Windows PowerShell:**
 ```powershell
 .\scripts\start-api.ps1 -Production
+```
+
+**Mac/Linux:**
+```bash
+./scripts/start-api.sh --production
 ```
 
 Usa gunicorn com 4 workers.
@@ -268,20 +395,38 @@ EMAIL_FROM_ADDRESS=noreply@jurispilot.com.br
 
 ### 1. Teste Completo do Sistema
 
+**Windows PowerShell:**
 ```powershell
 .\scripts\test-workflows.ps1
 ```
 
+**Mac/Linux:**
+```bash
+./scripts/test-workflows.sh
+```
+
 ### 2. Teste do Banco de Dados
 
+**Windows PowerShell:**
 ```powershell
 .\scripts\test-database.ps1
 ```
 
+**Mac/Linux:**
+```bash
+./scripts/test-database.sh
+```
+
 ### 3. Health Check
 
+**Windows PowerShell:**
 ```powershell
 .\scripts\health-check.ps1
+```
+
+**Mac/Linux:**
+```bash
+./scripts/health-check.sh
 ```
 
 ### 4. Verificar API
@@ -319,8 +464,13 @@ Resposta esperada:
 
 ### Problema: API Python não inicia
 
-**Solução:**
+**Solução Windows:**
 1. Ative ambiente virtual: `.\python\venv\Scripts\Activate.ps1`
+2. Verifique dependências: `pip list`
+3. Reinstale dependências: `pip install -r requirements.txt`
+
+**Solução Mac/Linux:**
+1. Ative ambiente virtual: `source python/venv/bin/activate`
 2. Verifique dependências: `pip list`
 3. Reinstale dependências: `pip install -r requirements.txt`
 
@@ -333,9 +483,13 @@ Resposta esperada:
 
 ### Problema: Erro de encoding
 
-**Solução:**
+**Solução Windows:**
 1. Certifique-se que arquivos estão em UTF-8
-2. No Windows, use PowerShell com encoding UTF-8: `chcp 65001`
+2. Use PowerShell com encoding UTF-8: `chcp 65001`
+
+**Solução Mac/Linux:**
+1. Certifique-se que arquivos estão em UTF-8
+2. Configure locale: `export LC_ALL=en_US.UTF-8`
 
 ---
 
@@ -343,8 +497,19 @@ Resposta esperada:
 
 ### Backup Manual
 
+**Windows PowerShell:**
 ```powershell
 .\scripts\backup-database.ps1
+```
+
+**Mac/Linux:**
+```bash
+./scripts/backup-database.sh
+```
+
+**Com compressão:**
+```bash
+./scripts/backup-database.sh --compress
 ```
 
 ### Restaurar Backup
@@ -362,6 +527,14 @@ psql -U postgres -d jurispilot < backup.sql
 3. ✅ Configure notificações
 4. ✅ Teste fluxos end-to-end
 5. ✅ Configure backup automático
+
+## Guias por Plataforma
+
+Para instruções detalhadas específicas da sua plataforma:
+
+- 🪟 [Instalação no Windows](INSTALACAO_WINDOWS.md)
+- 🍎 [Instalação no macOS](INSTALACAO_MAC.md)
+- 🐧 [Instalação no Linux](INSTALACAO_LINUX.md)
 
 ---
 

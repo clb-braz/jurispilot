@@ -42,7 +42,51 @@ class DocumentProcessor:
         """Inicializa o processador de documentos"""
         if tesseract_path:
             pytesseract.pytesseract.tesseract_cmd = tesseract_path
+        else:
+            # Detecção automática de Tesseract
+            tesseract_path = self._detect_tesseract()
+            if tesseract_path:
+                pytesseract.pytesseract.tesseract_cmd = tesseract_path
         logger.info("DocumentProcessor inicializado")
+    
+    @staticmethod
+    def _detect_tesseract() -> Optional[str]:
+        """Detecta automaticamente o caminho do Tesseract em diferentes sistemas operacionais"""
+        import platform
+        import shutil
+        
+        # Verifica se está no PATH
+        tesseract_path = shutil.which("tesseract")
+        if tesseract_path:
+            return tesseract_path
+        
+        # Paths específicos por OS
+        system = platform.system()
+        
+        if system == "Windows":
+            # Windows - locais comuns
+            possible_paths = [
+                r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+                r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+                os.path.expanduser(r"~\AppData\Local\Tesseract-OCR\tesseract.exe"),
+            ]
+        elif system == "Darwin":  # macOS
+            possible_paths = [
+                "/usr/local/bin/tesseract",
+                "/opt/homebrew/bin/tesseract",
+                "/usr/bin/tesseract",
+            ]
+        else:  # Linux
+            possible_paths = [
+                "/usr/bin/tesseract",
+                "/usr/local/bin/tesseract",
+            ]
+        
+        for path in possible_paths:
+            if os.path.exists(path):
+                return path
+        
+        return None
     
     def process_file(self, file_path: str) -> Dict:
         """
