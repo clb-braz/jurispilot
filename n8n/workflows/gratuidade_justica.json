@@ -1,0 +1,145 @@
+{
+  "name": "Gratuidade de Justiça",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerOn": "webhook"
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "gratuidade-justica"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM checklists_caso cc JOIN checklists_juridicos cj ON cc.checklist_juridico_id = cj.id WHERE cc.caso_id = $1 AND cj.tipo_acao = 'gratuidade_justica'",
+        "additionalFields": {
+          "queryParameters": "={{ $json.body.caso_id }}"
+        }
+      },
+      "id": "get-checklist",
+      "name": "Buscar Checklist",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-credentials",
+          "name": "PostgreSQL JurisPilot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Valida documentos específicos de gratuidade\nconst checklist = $input.all().map(item => item.json);\nconst casoId = $('Webhook Trigger').item.json.body.caso_id;\n\nconst documentosObrigatorios = [\n  'IRPF',\n  'Contracheque',\n  'Extrato bancário',\n  'Carteira de trabalho'\n];\n\nconst documentosFaltantes = [];\nconst documentosPresentes = [];\n\nfor (const doc of documentosObrigatorios) {\n  const encontrado = checklist.find(c => \n    c.status === 'recebido' && \n    (c.documento_obrigatorio?.toLowerCase().includes(doc.toLowerCase()) ||\n     doc.toLowerCase().includes(c.documento_obrigatorio?.toLowerCase()))\n  );\n  \n  if (encontrado) {\n    documentosPresentes.push(doc);\n  } else {\n    documentosFaltantes.push(doc);\n  }\n}\n\nconst percentualCompletude = (documentosPresentes.length / documentosObrigatorios.length * 100).toFixed(2);\n\nreturn {\n  json: {\n    caso_id: casoId,\n    documentos_obrigatorios: documentosObrigatorios,\n    documentos_presentes: documentosPresentes,\n    documentos_faltantes: documentosFaltantes,\n    percentual_completude: parseFloat(percentualCompletude),\n    is_completo: documentosFaltantes.length === 0\n  }\n};"
+      },
+      "id": "validate-docs",
+      "name": "Validar Documentos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-complete",
+              "leftValue": "={{ $json.is_completo }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-complete",
+      "name": "Checklist Completo?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": "public",
+        "table": "casos",
+        "updateKey": "id",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "documentacao_completa"
+          }
+        }
+      },
+      "id": "update-status",
+      "name": "Atualizar Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1050, 200],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-credentials",
+          "name": "PostgreSQL JurisPilot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\": \"{{ $('Webhook Trigger').item.json.body.telefone }}\",\n  \"message\": \"⚠️ Documentos faltantes para gratuidade de justiça:\\n\\n{{ $json.documentos_faltantes.join('\\n') }}\\n\\nCompletude: {{ $json.percentual_completude }}%\"\n}",
+        "options": {}
+      },
+      "id": "send-alert",
+      "name": "Enviar Alerta",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": "4.1",
+      "position": [1050, 400],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "whatsapp-api",
+          "name": "WhatsApp API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [[{"node": "Buscar Checklist", "type": "main", "index": 0}]]
+    },
+    "Buscar Checklist": {
+      "main": [[{"node": "Validar Documentos", "type": "main", "index": 0}]]
+    },
+    "Validar Documentos": {
+      "main": [[{"node": "Checklist Completo?", "type": "main", "index": 0}]]
+    },
+    "Checklist Completo?": {
+      "main": [[{"node": "Atualizar Status", "type": "main", "index": 0}], [{"node": "Enviar Alerta", "type": "main", "index": 0}]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-12-14T12:00:00.000Z",
+  "versionId": "1"
+}
+

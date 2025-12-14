@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Manual Completo do JurisPilot - Guia Passo a Passo para Desenvolvedores">
+    <title>JurisPilot - Manual Completo para Desenvolvedores</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0071e3;
+            --primary-dark: #0051a5;
+            --secondary: #1d1d1f;
+            --text: #1d1d1f;
+            --text-light: #86868b;
+            --bg: #ffffff;
+            --bg-alt: #f5f5f7;
+            --bg-code: #f6f8fa;
+            --border: #d2d2d7;
+            --success: #34c759;
+            --warning: #ff9500;
+            --error: #ff3b30;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --radius: 12px;
+            --spacing: 1.5rem;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            font-size: 17px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+            padding: 1rem 0;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Table of Contents */
+        .toc {
+            background: var(--bg-alt);
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .toc-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .toc h2 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: var(--text);
+        }
+
+        .toc-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            list-style: none;
+        }
+
+        .toc-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .toc-item:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .toc-item a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .toc-item a:hover {
+            text-decoration: underline;
+        }
+
+        /* Content Sections */
+        .content {
+            padding: 4rem 0;
+        }
+
+        .section {
+            margin-bottom: 4rem;
+            scroll-margin-top: 100px;
+        }
+
+        .section h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+            letter-spacing: -0.02em;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .section h3 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin: 2rem 0 1rem;
+            color: var(--text);
+        }
+
+        .section h4 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem;
+            color: var(--text);
+        }
+
+        .section p {
+            margin-bottom: 1.5rem;
+            color: var(--text);
+            line-height: 1.8;
+        }
+
+        .section ul, .section ol {
+            margin: 1.5rem 0;
+            padding-left: 2rem;
+        }
+
+        .section li {
+            margin-bottom: 0.75rem;
+            line-height: 1.8;
+        }
+
+        /* Code Blocks */
+        pre {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        code {
+            background: var(--bg-code);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+            font-size: 0.9em;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+        }
+
+        /* Flow Diagram */
+        .flow {
+            background: var(--bg-alt);
+            padding: 2rem;
+            border-radius: var(--radius);
+            margin: 2rem 0;
+            font-family: 'SF Mono', 'Monaco', monospace;
+            font-size: 0.95rem;
+            line-height: 2;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin: 1.5rem 0;
+            box-shadow: var(--shadow);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: var(--primary);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .badge-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .badge-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .badge-error {
+            background: var(--error);
+            color: white;
+        }
+
+        /* Alert Boxes */
+        .alert {
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            border-color: var(--primary);
+            color: #0d47a1;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            border-color: var(--success);
+            color: #1b5e20;
+        }
+
+        .alert-warning {
+            background: #fff3e0;
+            border-color: var(--warning);
+            color: #e65100;
+        }
+
+        /* Steps */
+        .steps {
+            counter-reset: step-counter;
+            list-style: none;
+            padding: 0;
+        }
+
+        .step {
+            counter-increment: step-counter;
+            margin: 2rem 0;
+            padding-left: 4rem;
+            position: relative;
+        }
+
+        .step::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 2.5rem;
+            height: 2.5rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        /* Comparison Table */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .comparison-item {
+            padding: 1.5rem;
+            border-radius: var(--radius);
+        }
+
+        .comparison-before {
+            background: #ffebee;
+            border-left: 4px solid var(--error);
+        }
+
+        .comparison-after {
+            background: #e8f5e9;
+            border-left: 4px solid var(--success);
+        }
+
+        /* FAQ */
+        .faq-item {
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-alt);
+            border-radius: var(--radius);
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Summary Box */
+        .summary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 3rem;
+            border-radius: var(--radius);
+            margin: 3rem 0;
+        }
+
+        .summary h3 {
+            color: white;
+            margin-top: 0;
+        }
+
+        .summary ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .summary li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .summary li:last-child {
+            border-bottom: none;
+        }
+
+        .summary li::before {
+            content: "✅ ";
+            margin-right: 0.5rem;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--secondary);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            margin-top: 4rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .section h2 {
+                font-size: 2rem;
+            }
+
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .toc-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Highlight */
+        .highlight {
+            background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+            padding: 0.1rem 0.3rem;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="#" class="logo">JurisPilot</a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="#inicio">Início</a></li>
+                    <li><a href="#indice">Índice</a></li>
+                    <li><a href="#conteudo">Conteúdo</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero" id="inicio">
+        <div class="container">
+            <h1>📖 Manual Completo do JurisPilot</h1>
+            <p>Guia Passo a Passo para Desenvolvedores</p>
+        </div>
+    </section>
+
+    <!-- Table of Contents -->
+    <section class="toc" id="indice">
+        <div class="toc-content">
+            <h2>📚 Índice</h2>
+            <ul class="toc-list">
+                <li class="toc-item"><a href="#o-que-e">1. O QUE É O JURISPILOT?</a></li>
+                <li class="toc-item"><a href="#o-que-foi-criado">2. O QUE FOI CRIADO?</a></li>
+                <li class="toc-item"><a href="#como-funciona">3. COMO FUNCIONA?</a></li>
+                <li class="toc-item"><a href="#instalacao">4. INSTALAÇÃO PASSO A PASSO</a></li>
+                <li class="toc-item"><a href="#banco-dados">5. CONFIGURANDO O BANCO DE DADOS</a></li>
+                <li class="toc-item"><a href="#n8n">6. USANDO O N8N</a></li>
+                <li class="toc-item"><a href="#python">7. USANDO OS SCRIPTS PYTHON</a></li>
+                <li class="toc-item"><a href="#site">8. VENDO O SITE</a></li>
+                <li class="toc-item"><a href="#testando">9. TESTANDO TUDO</a></li>
+                <li class="toc-item"><a href="#duvidas">10. DÚVIDAS FREQUENTES</a></li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Content -->
+    <div class="content" id="conteudo">
+        <div class="container">
+            <!-- Section 1 -->
+            <section class="section" id="o-que-e">
+                <h2>🎯 O QUE É O JURISPILOT?</h2>
+                <p>O <strong>JurisPilot</strong> é um sistema que <strong>automatiza tarefas repetitivas</strong> de escritórios de advocacia.</p>
+                
+                <h3>Exemplo Prático:</h3>
+                <div class="comparison">
+                    <div class="comparison-item comparison-before">
+                        <h4>ANTES (sem JurisPilot):</h4>
+                        <ul>
+                            <li>Cliente liga → Secretária anota → Advogado pede documentos → Cliente envia → Advogado organiza → Advogado verifica prazos → Advogado prepara resumo</li>
+                        </ul>
+                    </div>
+                    <div class="comparison-item comparison-after">
+                        <h4>DEPOIS (com JurisPilot):</h4>
+                        <ul>
+                            <li>Cliente envia mensagem → <strong>TUDO acontece automaticamente</strong> → Advogado recebe caso pronto!</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>O que o sistema faz automaticamente:</h3>
+                <div class="card">
+                    <ul>
+                        <li>✅ Recebe contato do cliente 24 horas por dia</li>
+                        <li>✅ Identifica o tipo de caso (divórcio, trabalhista, etc.)</li>
+                        <li>✅ Cria lista de documentos necessários</li>
+                        <li>✅ Processa documentos enviados</li>
+                        <li>✅ Organiza tudo automaticamente</li>
+                        <li>✅ Controla prazos e envia alertas</li>
+                        <li>✅ Gera resumo jurídico pronto para o advogado</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 2 -->
+            <section class="section" id="o-que-foi-criado">
+                <h2>📦 O QUE FOI CRIADO?</h2>
+                <p>Foram criados <strong>4 componentes principais</strong>:</p>
+
+                <div class="card">
+                    <h3>1. BANCO DE DADOS (PostgreSQL)</h3>
+                    <ul>
+                        <li>Onde ficam armazenados: clientes, casos, documentos, prazos</li>
+                        <li>Arquivo: <code>database/schema.sql</code> (estrutura) e <code>database/seeds/checklists_seed.sql</code> (dados iniciais)</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>2. AUTOMAÇÕES (n8n)</h3>
+                    <ul>
+                        <li>19 workflows (automações prontas)</li>
+                        <li>Arquivos: <code>n8n/workflows/*.json</code></li>
+                        <li>Exemplos: pré-atendimento, triagem, controle de prazos</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>3. PROCESSAMENTO (Python)</h3>
+                    <ul>
+                        <li>6 scripts que processam documentos</li>
+                        <li>Arquivos: <code>python/src/*.py</code></li>
+                        <li>Exemplos: extrair texto de PDF, classificar provas, gerar resumos</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>4. SITE INSTITUCIONAL</h3>
+                    <ul>
+                        <li>Site para apresentar o produto</li>
+                        <li>Arquivos: <code>site/index.html</code>, <code>site/css/style.css</code>, <code>site/js/main.js</code></li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 3 -->
+            <section class="section" id="como-funciona">
+                <h2>🔄 COMO FUNCIONA?</h2>
+                <h3>Fluxo Completo (Passo a Passo):</h3>
+                <div class="flow">1. CLIENTE ENVIA MENSAGEM
+   ↓
+2. N8N RECEBE (via WhatsApp ou formulário)
+   ↓
+3. SISTEMA CRIA REGISTRO NO BANCO DE DADOS
+   ↓
+4. SISTEMA IDENTIFICA TIPO DE CASO (ex: "Divórcio")
+   ↓
+5. SISTEMA GERA CHECKLIST (ex: "Precisa de certidão de casamento, CPF...")
+   ↓
+6. SISTEMA ENVIA LINK PARA CLIENTE FAZER UPLOAD
+   ↓
+7. CLIENTE ENVIA DOCUMENTOS
+   ↓
+8. PYTHON PROCESSA OS DOCUMENTOS (extrai texto, classifica, etc.)
+   ↓
+9. SISTEMA VALIDA SE ESTÁ COMPLETO
+   ↓
+10. SISTEMA GERA RESUMO JURÍDICO
+    ↓
+11. ADVOGADO RECEBE CASO PRONTO!</div>
+            </section>
+
+            <!-- Section 4 -->
+            <section class="section" id="instalacao">
+                <h2>🛠️ INSTALAÇÃO PASSO A PASSO</h2>
+                
+                <h3>PASSO 1: Verificar o que você precisa</h3>
+                <p>Você precisa ter instalado:</p>
+                <ul>
+                    <li>✅ <strong>PostgreSQL</strong> (banco de dados)</li>
+                    <li>✅ <strong>Python 3.8+</strong> (para processar documentos)</li>
+                    <li>✅ <strong>Node.js 16+</strong> (para o n8n)</li>
+                    <li>✅ <strong>Navegador</strong> (Chrome, Firefox, etc.)</li>
+                </ul>
+
+                <h3>PASSO 2: Instalar PostgreSQL</h3>
+                <div class="card">
+                    <h4>Windows:</h4>
+                    <ol>
+                        <li>Baixe em: <a href="https://www.postgresql.org/download/windows/" target="_blank">https://www.postgresql.org/download/windows/</a></li>
+                        <li>Instale (anote a senha que você criar)</li>
+                        <li>Anote: usuário = <code>postgres</code>, senha = (a que você definiu)</li>
+                    </ol>
+                    <div class="alert alert-info">
+                        <strong>Verificar se instalou:</strong><br>
+                        Abra o "SQL Shell (psql)" ou "pgAdmin"<br>
+                        Se abrir, está instalado! ✅
+                    </div>
+                </div>
+
+                <h3>PASSO 3: Instalar Python</h3>
+                <div class="card">
+                    <h4>Windows:</h4>
+                    <ol>
+                        <li>Baixe em: <a href="https://www.python.org/downloads/" target="_blank">https://www.python.org/downloads/</a></li>
+                        <li>Na instalação, <strong>MARQUE</strong> "Add Python to PATH"</li>
+                        <li>Instale</li>
+                    </ol>
+                    <div class="alert alert-info">
+                        <strong>Verificar se instalou:</strong><br>
+                        Abra o "Prompt de Comando" (cmd)<br>
+                        Digite: <code>python --version</code><br>
+                        Se mostrar a versão, está instalado! ✅
+                    </div>
+                </div>
+
+                <h3>PASSO 4: Instalar Node.js</h3>
+                <div class="card">
+                    <h4>Windows:</h4>
+                    <ol>
+                        <li>Baixe em: <a href="https://nodejs.org/" target="_blank">https://nodejs.org/</a></li>
+                        <li>Instale a versão LTS</li>
+                    </ol>
+                    <div class="alert alert-info">
+                        <strong>Verificar se instalou:</strong><br>
+                        Abra o "Prompt de Comando"<br>
+                        Digite: <code>node --version</code><br>
+                        Se mostrar a versão, está instalado! ✅
+                    </div>
+                </div>
+
+                <h3>PASSO 5: Instalar n8n</h3>
+                <div class="card">
+                    <p><strong>No Prompt de Comando, digite:</strong></p>
+                    <pre><code>npm install -g n8n</code></pre>
+                    <p>Aguarde a instalação terminar.</p>
+                    <div class="alert alert-info">
+                        <strong>Verificar se instalou:</strong><br>
+                        Digite: <code>n8n --version</code><br>
+                        Se mostrar a versão, está instalado! ✅
+                    </div>
+                </div>
+
+                <h3>PASSO 6: Preparar o ambiente Python</h3>
+                <div class="card">
+                    <p><strong>No Prompt de Comando, navegue até a pasta do projeto:</strong></p>
+                    <pre><code>cd D:\JurisPilot\python</code></pre>
+                    <p><strong>Crie um ambiente virtual:</strong></p>
+                    <pre><code>python -m venv venv</code></pre>
+                    <p><strong>Ative o ambiente virtual:</strong></p>
+                    <pre><code>venv\Scripts\activate</code></pre>
+                    <p><strong>Instale as dependências:</strong></p>
+                    <pre><code>pip install -r requirements.txt</code></pre>
+                    <div class="alert alert-success">
+                        <strong>Pronto! Python configurado! ✅</strong>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 5 -->
+            <section class="section" id="banco-dados">
+                <h2>🗄️ CONFIGURANDO O BANCO DE DADOS</h2>
+
+                <h3>PASSO 1: Criar o banco de dados</h3>
+                <div class="card">
+                    <p><strong>Abra o "SQL Shell (psql)" ou "pgAdmin"</strong></p>
+                    <p><strong>No SQL Shell, digite (pressione Enter após cada linha):</strong></p>
+                    <pre><code>CREATE DATABASE jurispilot;</code></pre>
+                    <p>Pressione Enter. Se aparecer "CREATE DATABASE", deu certo! ✅</p>
+                </div>
+
+                <h3>PASSO 2: Criar as tabelas (estrutura)</h3>
+                <div class="card">
+                    <p><strong>No SQL Shell, digite:</strong></p>
+                    <pre><code>\c jurispilot</code></pre>
+                    <p>Agora, abra o arquivo <code>D:\JurisPilot\database\schema.sql</code> no Bloco de Notas</p>
+                    <p>Copie TODO o conteúdo e cole no SQL Shell</p>
+                    <p>Pressione Enter. Se não aparecer erros, deu certo! ✅</p>
+                </div>
+
+                <h3>PASSO 3: Inserir dados iniciais (checklists)</h3>
+                <div class="card">
+                    <p><strong>No SQL Shell (ainda conectado ao jurispilot), abra o arquivo:</strong></p>
+                    <p><code>D:\JurisPilot\database\seeds\checklists_seed.sql</code></p>
+                    <p>Copie TODO o conteúdo e cole no SQL Shell</p>
+                    <p>Pressione Enter. Se não aparecer erros, deu certo! ✅</p>
+                </div>
+
+                <h3>PASSO 4: Verificar se funcionou</h3>
+                <div class="card">
+                    <p><strong>No SQL Shell, digite:</strong></p>
+                    <pre><code>SELECT COUNT(*) FROM checklists_juridicos;</code></pre>
+                    <p>Se aparecer um número (ex: 67), está funcionando! ✅</p>
+                </div>
+            </section>
+
+            <!-- Section 6 -->
+            <section class="section" id="n8n">
+                <h2>⚙️ USANDO O N8N</h2>
+
+                <h3>O QUE É O N8N?</h3>
+                <p>O <strong>n8n</strong> é uma ferramenta visual que cria automações. É como um "LEGO de automações" - você conecta blocos e cria fluxos.</p>
+
+                <h3>PASSO 1: Iniciar o n8n</h3>
+                <div class="card">
+                    <p><strong>No Prompt de Comando, digite:</strong></p>
+                    <pre><code>n8n start</code></pre>
+                    <p>Aguarde aparecer:</p>
+                    <pre><code>n8n ready on 0.0.0.0, port 5678</code></pre>
+                    <p><strong>Abra seu navegador e acesse:</strong></p>
+                    <pre><code>http://localhost:5678</code></pre>
+                    <div class="alert alert-success">
+                        <strong>Você verá a tela do n8n! 🎉</strong>
+                    </div>
+                </div>
+
+                <h3>PASSO 2: Criar sua conta</h3>
+                <div class="card">
+                    <ul>
+                        <li>Na primeira vez, o n8n pedirá para criar um usuário e senha</li>
+                        <li>Crie e anote!</li>
+                    </ul>
+                </div>
+
+                <h3>PASSO 3: Configurar conexão com PostgreSQL</h3>
+                <div class="card">
+                    <p><strong>No n8n:</strong></p>
+                    <ol>
+                        <li>Clique no menu (☰) no canto superior esquerdo</li>
+                        <li>Clique em "Credentials" (Credenciais)</li>
+                        <li>Clique em "Add Credential" (Adicionar Credencial)</li>
+                        <li>Procure por "Postgres"</li>
+                        <li>Preencha:
+                            <ul>
+                                <li><strong>Host:</strong> <code>localhost</code></li>
+                                <li><strong>Database:</strong> <code>jurispilot</code></li>
+                                <li><strong>User:</strong> <code>postgres</code></li>
+                                <li><strong>Password:</strong> (sua senha do PostgreSQL)</li>
+                                <li><strong>Port:</strong> <code>5432</code></li>
+                            </ul>
+                        </li>
+                        <li>Clique em "Save" (Salvar)</li>
+                        <li>Dê um nome: "PostgreSQL JurisPilot"</li>
+                    </ol>
+                    <div class="alert alert-success">
+                        <strong>Pronto! Conexão configurada! ✅</strong>
+                    </div>
+                </div>
+
+                <h3>PASSO 4: Importar workflows (automações prontas)</h3>
+                <div class="card">
+                    <p><strong>No n8n:</strong></p>
+                    <ol>
+                        <li>Clique no menu (☰)</li>
+                        <li>Clique em "Workflows"</li>
+                        <li>Clique no botão "Import from File" ou "Import from URL"</li>
+                        <li>Vá até a pasta: <code>D:\JurisPilot\n8n\workflows\</code></li>
+                        <li>Selecione um arquivo (ex: <code>pre_atendimento.json</code>)</li>
+                        <li>Clique em "Import"</li>
+                    </ol>
+                    <div class="alert alert-warning">
+                        <strong>Repita para TODOS os arquivos .json da pasta workflows!</strong><br>
+                        Você terá 19 workflows importados! ✅
+                    </div>
+                </div>
+
+                <h3>PASSO 5: Ativar um workflow</h3>
+                <div class="card">
+                    <p><strong>No n8n:</strong></p>
+                    <ol>
+                        <li>Clique em um workflow (ex: "Pré-Atendimento 24h")</li>
+                        <li>Você verá os "blocos" conectados</li>
+                        <li>Clique no botão "Active" (Ativo) no canto superior direito</li>
+                    </ol>
+                    <div class="alert alert-success">
+                        <strong>O workflow está ATIVO! ✅</strong>
+                    </div>
+                </div>
+
+                <h3>PASSO 6: Testar um workflow</h3>
+                <div class="card">
+                    <p><strong>Para testar o "Pré-Atendimento":</strong></p>
+                    <ol>
+                        <li>Abra o workflow "Pré-Atendimento 24h"</li>
+                        <li>Procure pelo bloco "Webhook" (geralmente o primeiro)</li>
+                        <li>Clique nele</li>
+                        <li>Copie a URL que aparece (ex: <code>http://localhost:5678/webhook/pre-atendimento</code>)</li>
+                        <li>Abra uma nova aba do navegador</li>
+                        <li>Cole a URL e adicione no final: <code>?nome=João&telefone=11999999999&email=joao@teste.com&descricao=Preciso de ajuda</code></li>
+                        <li>Pressione Enter</li>
+                        <li>Volte ao n8n e veja se o workflow executou!</li>
+                    </ol>
+                    <div class="alert alert-success">
+                        <strong>Se aparecer "Executed" (Executado), funcionou! ✅</strong>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 7 -->
+            <section class="section" id="python">
+                <h2>🐍 USANDO OS SCRIPTS PYTHON</h2>
+
+                <h3>O QUE SÃO OS SCRIPTS PYTHON?</h3>
+                <p>São programas que <strong>processam documentos</strong> automaticamente:</p>
+                <ul>
+                    <li>Extraem texto de PDFs</li>
+                    <li>Classificam provas</li>
+                    <li>Geram resumos</li>
+                    <li>Extraem prazos</li>
+                </ul>
+
+                <h3>COMO USAR:</h3>
+
+                <h4>Opção 1: Chamar diretamente (teste)</h4>
+                <div class="card">
+                    <p><strong>No Prompt de Comando, navegue até:</strong></p>
+                    <pre><code>cd D:\JurisPilot\python\src</code></pre>
+                    <p><strong>Ative o ambiente virtual:</strong></p>
+                    <pre><code>..\venv\Scripts\activate</code></pre>
+                    <p><strong>Teste um script:</strong></p>
+                    <pre><code>python document_processor.py "caminho\para\seu\arquivo.pdf"</code></pre>
+                </div>
+
+                <h4>Opção 2: Usar via n8n (recomendado)</h4>
+                <div class="card">
+                    <p>Os workflows do n8n já chamam os scripts Python automaticamente quando necessário. Você não precisa fazer nada manualmente!</p>
+                    <p><strong>Os scripts são chamados quando:</strong></p>
+                    <ul>
+                        <li>Um documento é enviado → <code>document_processor.py</code> processa</li>
+                        <li>Precisa classificar uma prova → <code>proof_classifier.py</code> classifica</li>
+                        <li>Precisa gerar resumo → <code>legal_summary.py</code> gera</li>
+                        <li>Precisa extrair prazos → <code>deadline_extractor.py</code> extrai</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 8 -->
+            <section class="section" id="site">
+                <h2>🌐 VENDO O SITE</h2>
+
+                <h3>O site está em: <code>D:\JurisPilot\site\</code></h3>
+
+                <h3>PASSO 1: Abrir o site</h3>
+
+                <h4>Método 1: Duplo clique</h4>
+                <div class="card">
+                    <ol>
+                        <li>Vá até <code>D:\JurisPilot\site\</code></li>
+                        <li>Dê duplo clique em <code>index.html</code></li>
+                        <li>O site abrirá no seu navegador! ✅</li>
+                    </ol>
+                </div>
+
+                <h4>Método 2: Via navegador</h4>
+                <div class="card">
+                    <ol>
+                        <li>Abra seu navegador</li>
+                        <li>Pressione <code>Ctrl + O</code> (ou File → Open)</li>
+                        <li>Navegue até <code>D:\JurisPilot\site\index.html</code></li>
+                        <li>Selecione e abra</li>
+                    </ol>
+                </div>
+
+                <h4>Método 3: Servidor local (recomendado para produção)</h4>
+                <div class="card">
+                    <p><strong>No Prompt de Comando, navegue até:</strong></p>
+                    <pre><code>cd D:\JurisPilot\site</code></pre>
+                    <p><strong>Inicie um servidor Python simples:</strong></p>
+                    <pre><code>python -m http.server 8000</code></pre>
+                    <p><strong>Abra o navegador e acesse:</strong></p>
+                    <pre><code>http://localhost:8000</code></pre>
+                    <div class="alert alert-success">
+                        <strong>O site estará rodando! ✅</strong>
+                    </div>
+                </div>
+
+                <h3>O QUE VOCÊ VERÁ:</h3>
+                <div class="card">
+                    <ul>
+                        <li>Página inicial com a mensagem: "Um escritório que nunca esquece documentos..."</li>
+                        <li>Seção de funcionalidades</li>
+                        <li>Lista das 20 automações</li>
+                        <li>Formulário de contato</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 9 -->
+            <section class="section" id="testando">
+                <h2>🧪 TESTANDO TUDO</h2>
+
+                <h3>TESTE COMPLETO (Passo a Passo):</h3>
+
+                <h4>1. Teste do Banco de Dados</h4>
+                <div class="card">
+                    <p><strong>No SQL Shell:</strong></p>
+                    <pre><code>\c jurispilot
+SELECT * FROM checklists_juridicos LIMIT 5;</code></pre>
+                    <p>Se aparecer dados, está funcionando! ✅</p>
+                </div>
+
+                <h4>2. Teste do n8n</h4>
+                <div class="card">
+                    <ol>
+                        <li>Inicie o n8n: <code>n8n start</code></li>
+                        <li>Acesse: <code>http://localhost:5678</code></li>
+                        <li>Veja se os workflows foram importados</li>
+                        <li>Ative um workflow simples</li>
+                        <li>Teste executando manualmente</li>
+                    </ol>
+                    <p>Se executar sem erros, está funcionando! ✅</p>
+                </div>
+
+                <h4>3. Teste do Python</h4>
+                <div class="card">
+                    <p><strong>No Prompt de Comando:</strong></p>
+                    <pre><code>cd D:\JurisPilot\python\src
+..\venv\Scripts\activate
+python -c "from document_processor import DocumentProcessor; print('OK!')"</code></pre>
+                    <p>Se aparecer "OK!", está funcionando! ✅</p>
+                </div>
+
+                <h4>4. Teste do Site</h4>
+                <div class="card">
+                    <ol>
+                        <li>Abra <code>index.html</code> no navegador</li>
+                        <li>Veja se carrega sem erros</li>
+                        <li>Teste o formulário de contato</li>
+                    </ol>
+                    <p>Se aparecer tudo bonito, está funcionando! ✅</p>
+                </div>
+            </section>
+
+            <!-- Section 10 -->
+            <section class="section" id="duvidas">
+                <h2>❓ DÚVIDAS FREQUENTES</h2>
+
+                <div class="faq-item">
+                    <div class="faq-question">1. "Não consigo instalar o PostgreSQL"</div>
+                    <div class="faq-answer">
+                        <p><strong>Solução:</strong></p>
+                        <ul>
+                            <li>Baixe a versão mais recente do site oficial</li>
+                            <li>Durante a instalação, anote a senha que você criar</li>
+                            <li>Se der erro, tente instalar como Administrador</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">2. "O n8n não inicia"</div>
+                    <div class="faq-answer">
+                        <p><strong>Solução:</strong></p>
+                        <ul>
+                            <li>Verifique se o Node.js está instalado: <code>node --version</code></li>
+                            <li>Tente reinstalar: <code>npm install -g n8n</code></li>
+                            <li>Verifique se a porta 5678 não está em uso</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">3. "Erro ao conectar no banco de dados"</div>
+                    <div class="faq-answer">
+                        <p><strong>Solução:</strong></p>
+                        <ul>
+                            <li>Verifique se o PostgreSQL está rodando</li>
+                            <li>Confirme usuário e senha</li>
+                            <li>Teste a conexão no pgAdmin primeiro</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">4. "Os workflows não funcionam"</div>
+                    <div class="faq-answer">
+                        <p><strong>Solução:</strong></p>
+                        <ul>
+                            <li>Verifique se as credenciais do PostgreSQL estão configuradas no n8n</li>
+                            <li>Veja os logs de erro no n8n (canto inferior direito)</li>
+                            <li>Certifique-se de que o banco de dados foi criado corretamente</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">5. "Como faço para usar com WhatsApp de verdade?"</div>
+                    <div class="faq-answer">
+                        <p><strong>Solução:</strong></p>
+                        <ul>
+                            <li>Você precisa de uma API de WhatsApp (ex: Twilio, Evolution API)</li>
+                            <li>Configure as credenciais no n8n</li>
+                            <li>Atualize o workflow "Pré-Atendimento" com a URL da API</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">6. "Como faço backup do banco de dados?"</div>
+                    <div class="faq-answer">
+                        <p><strong>No Prompt de Comando:</strong></p>
+                        <pre><code>pg_dump -U postgres -d jurispilot > backup.sql</code></pre>
+                        <p><strong>Para restaurar:</strong></p>
+                        <pre><code>psql -U postgres -d jurispilot < backup.sql</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Summary -->
+            <section class="section">
+                <div class="summary">
+                    <h3>📞 PRÓXIMOS PASSOS</h3>
+                    <p>Agora que você entendeu tudo:</p>
+                    <ul>
+                        <li>Configure tudo conforme este manual</li>
+                        <li>Teste cada componente</li>
+                        <li>Comece usando workflows simples</li>
+                        <li>Vá adicionando mais funcionalidades conforme necessário</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Final Summary -->
+            <section class="section">
+                <h2>🎓 RESUMO RÁPIDO</h2>
+                <div class="card">
+                    <h3>O QUE VOCÊ TEM:</h3>
+                    <ul>
+                        <li>✅ Banco de dados PostgreSQL com estrutura completa</li>
+                        <li>✅ 19 workflows n8n prontos para usar</li>
+                        <li>✅ 6 scripts Python para processar documentos</li>
+                        <li>✅ Site institucional completo</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>O QUE VOCÊ PRECISA FAZER:</h3>
+                    <ol>
+                        <li>Instalar PostgreSQL, Python e Node.js</li>
+                        <li>Criar o banco de dados</li>
+                        <li>Iniciar o n8n</li>
+                        <li>Importar os workflows</li>
+                        <li>Configurar credenciais</li>
+                        <li>Testar!</li>
+                    </ol>
+                </div>
+
+                <div class="card">
+                    <h3>TEMPO ESTIMADO:</h3>
+                    <ul>
+                        <li>Instalação: 1-2 horas</li>
+                        <li>Configuração: 30 minutos</li>
+                        <li>Testes: 30 minutos</li>
+                        <li><strong>Total: 2-3 horas</strong></li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Final Message -->
+            <section class="section">
+                <div class="summary">
+                    <h3>🎉 PARABÉNS!</h3>
+                    <p>Você agora tem um sistema completo de automação jurídica!</p>
+                    <p><strong>Lembre-se:</strong></p>
+                    <ul>
+                        <li>Comece devagar</li>
+                        <li>Teste cada parte separadamente</li>
+                        <li>Não tenha medo de errar (é assim que se aprende!)</li>
+                        <li>Use este manual sempre que tiver dúvidas</li>
+                    </ul>
+                    <p style="margin-top: 2rem; font-size: 1.2rem;"><strong>Boa sorte com o JurisPilot! 🚀</strong></p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p style="margin-bottom: 1rem;"><strong>JurisPilot</strong> - Automação Jurídica Operacional</p>
+            <p style="opacity: 0.8; font-size: 0.9rem;">Última atualização: Dezembro 2024</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scroll para links internos
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Highlight código ao clicar
+        document.querySelectorAll('pre code').forEach(block => {
+            block.addEventListener('click', function() {
+                const range = document.createRange();
+                range.selectNode(this);
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+                try {
+                    document.execCommand('copy');
+                    // Feedback visual (opcional)
+                    const original = this.style.backgroundColor;
+                    this.style.backgroundColor = '#34c759';
+                    setTimeout(() => {
+                        this.style.backgroundColor = original;
+                    }, 200);
+                } catch (err) {
+                    console.log('Erro ao copiar');
+                }
+            });
+        });
+
+        // Header transparente ao scroll
+        let lastScroll = 0;
+        const header = document.querySelector('.header');
+        
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+            if (currentScroll > 100) {
+                header.style.background = 'rgba(255, 255, 255, 0.95)';
+            } else {
+                header.style.background = 'rgba(255, 255, 255, 0.8)';
+            }
+            lastScroll = currentScroll;
+        });
+    </script>
+</body>
+</html>
+

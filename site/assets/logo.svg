@@ -1,0 +1,105 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="brainGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#9b59b6;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#8e44ad;stop-opacity:1" />
+      <stop offset="60%" style="stop-color:#7d3c98;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6c5ce7;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="leftGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#9b59b6;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#8e44ad;stop-opacity:0.9" />
+    </linearGradient>
+    <linearGradient id="rightGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8e44ad;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#6c5ce7;stop-opacity:0.9" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="strongGlow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Brain Outline - Left Hemisphere -->
+  <path d="M100,25 Q85,20 70,30 Q55,40 50,55 Q45,70 47,85 Q49,100 55,110 Q61,120 70,125 Q79,130 90,133 Q100,135 100,140" 
+        fill="url(#leftGradient)" 
+        filter="url(#strongGlow)" 
+        opacity="0.95"/>
+  
+  <!-- Brain Outline - Right Hemisphere -->
+  <path d="M100,25 Q115,20 130,30 Q145,40 150,55 Q155,70 153,85 Q151,100 145,110 Q139,120 130,125 Q121,130 110,133 Q100,135 100,140" 
+        fill="url(#rightGradient)" 
+        filter="url(#strongGlow)" 
+        opacity="0.95"/>
+  
+  <!-- Central Division Line -->
+  <line x1="100" y1="25" x2="100" y2="140" 
+        stroke="url(#brainGradient)" 
+        stroke-width="1.5" 
+        filter="url(#glow)" 
+        opacity="0.7"/>
+  
+  <!-- Left Hemisphere Circuit Patterns -->
+  <g opacity="0.85" filter="url(#glow)">
+    <!-- Main circuit lines -->
+    <path d="M65,50 Q70,60 75,70 Q70,80 65,90" stroke="#9b59b6" stroke-width="1.5" fill="none"/>
+    <path d="M55,70 Q60,75 65,80 Q60,85 55,90" stroke="#8e44ad" stroke-width="1.5" fill="none"/>
+    <path d="M75,60 Q80,70 85,75 Q80,80 75,90" stroke="#9b59b6" stroke-width="1.5" fill="none"/>
+    <path d="M60,100 Q65,105 70,110 Q65,115 60,120" stroke="#8e44ad" stroke-width="1.5" fill="none"/>
+    
+    <!-- Circuit nodes left -->
+    <circle cx="70" cy="60" r="2.5" fill="#9b59b6"/>
+    <circle cx="60" cy="75" r="2" fill="#8e44ad"/>
+    <circle cx="75" cy="75" r="2" fill="#9b59b6"/>
+    <circle cx="65" cy="90" r="2" fill="#8e44ad"/>
+    <circle cx="80" cy="70" r="2" fill="#9b59b6"/>
+    <circle cx="70" cy="105" r="2" fill="#8e44ad"/>
+    <circle cx="65" cy="115" r="1.5" fill="#9b59b6"/>
+  </g>
+  
+  <!-- Right Hemisphere Circuit Patterns -->
+  <g opacity="0.85" filter="url(#glow)">
+    <!-- Main circuit lines -->
+    <path d="M135,50 Q130,60 125,70 Q130,80 135,90" stroke="#6c5ce7" stroke-width="1.5" fill="none"/>
+    <path d="M145,70 Q140,75 135,80 Q140,85 145,90" stroke="#8e44ad" stroke-width="1.5" fill="none"/>
+    <path d="M125,60 Q120,70 115,75 Q120,80 125,90" stroke="#6c5ce7" stroke-width="1.5" fill="none"/>
+    <path d="M140,100 Q135,105 130,110 Q135,115 140,120" stroke="#8e44ad" stroke-width="1.5" fill="none"/>
+    
+    <!-- Circuit nodes right -->
+    <circle cx="130" cy="60" r="2.5" fill="#6c5ce7"/>
+    <circle cx="140" cy="75" r="2" fill="#8e44ad"/>
+    <circle cx="125" cy="75" r="2" fill="#6c5ce7"/>
+    <circle cx="135" cy="90" r="2" fill="#8e44ad"/>
+    <circle cx="120" cy="70" r="2" fill="#6c5ce7"/>
+    <circle cx="130" cy="105" r="2" fill="#8e44ad"/>
+    <circle cx="135" cy="115" r="1.5" fill="#6c5ce7"/>
+  </g>
+  
+  <!-- Additional connecting circuits -->
+  <g opacity="0.7" filter="url(#glow)">
+    <path d="M85,100 Q90,105 95,100" stroke="#9b59b6" stroke-width="1" fill="none"/>
+    <path d="M105,100 Q110,105 115,100" stroke="#6c5ce7" stroke-width="1" fill="none"/>
+    <circle cx="90" cy="100" r="1.5" fill="#9b59b6"/>
+    <circle cx="110" cy="100" r="1.5" fill="#6c5ce7"/>
+    <circle cx="95" cy="105" r="1" fill="#8e44ad"/>
+    <circle cx="105" cy="105" r="1" fill="#8e44ad"/>
+  </g>
+  
+  <!-- Brain texture/convolutions -->
+  <g opacity="0.4">
+    <path d="M70,40 Q75,45 70,50" stroke="#9b59b6" stroke-width="1" fill="none" filter="url(#glow)"/>
+    <path d="M130,40 Q125,45 130,50" stroke="#6c5ce7" stroke-width="1" fill="none" filter="url(#glow)"/>
+    <path d="M75,100 Q80,105 75,110" stroke="#8e44ad" stroke-width="1" fill="none" filter="url(#glow)"/>
+    <path d="M125,100 Q120,105 125,110" stroke="#8e44ad" stroke-width="1" fill="none" filter="url(#glow)"/>
+  </g>
+</svg>

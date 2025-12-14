@@ -1,0 +1,49 @@
+{
+  "name": "Guarda",
+  "nodes": [
+    {
+      "parameters": {"triggerOn": "webhook"},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "guarda"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT d.* FROM documentos d WHERE d.caso_id = $1",
+        "additionalFields": {"queryParameters": "={{ $json.body.caso_id }}"}
+      },
+      "id": "get-docs",
+      "name": "Buscar Documentos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {"postgres": {"id": "postgres-credentials", "name": "PostgreSQL JurisPilot"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Classifica provas por relevância\nconst docs = $input.all().map(item => item.json);\n\nconst provasVinculo = docs.filter(d => {\n  const tipo = d.tipo_documento?.toLowerCase() || '';\n  return tipo.includes('certidão') || tipo.includes('certidao') || tipo.includes('nascimento');\n});\n\nconst provasEscolares = docs.filter(d => {\n  const tipo = d.tipo_documento?.toLowerCase() || '';\n  return tipo.includes('escolar') || tipo.includes('histórico') || tipo.includes('historico');\n});\n\nconst provasMedicas = docs.filter(d => {\n  const tipo = d.tipo_documento?.toLowerCase() || '';\n  return tipo.includes('médico') || tipo.includes('medico') || tipo.includes('relatório') || tipo.includes('relatorio');\n});\n\n// Ordena por relevância\nconst todasProvas = [...provasVinculo, ...provasEscolares, ...provasMedicas].sort((a, b) => (b.relevancia || 0) - (a.relevancia || 0));\n\nreturn {\n  json: {\n    caso_id: $('Webhook Trigger').item.json.body.caso_id,\n    provas_vinculo: provasVinculo.map(d => ({id: d.id, tipo: d.tipo_documento, relevancia: d.relevancia})),\n    provas_escolares: provasEscolares.map(d => ({id: d.id, tipo: d.tipo_documento, relevancia: d.relevancia})),\n    provas_medicas: provasMedicas.map(d => ({id: d.id, tipo: d.tipo_documento, relevancia: d.relevancia})),\n    provas_ordenadas: todasProvas.map(d => ({id: d.id, tipo: d.tipo_documento, relevancia: d.relevancia}))\n  }\n};"
+      },
+      "id": "classify-relevance",
+      "name": "Classificar por Relevância",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {"main": [[{"node": "Buscar Documentos", "type": "main", "index": 0}]]},
+    "Buscar Documentos": {"main": [[{"node": "Classificar por Relevância", "type": "main", "index": 0}]]}
+  },
+  "pinData": {},
+  "settings": {"executionOrder": "v1"},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-12-14T12:00:00.000Z",
+  "versionId": "1"
+}
+

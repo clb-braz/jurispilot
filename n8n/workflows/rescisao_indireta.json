@@ -1,0 +1,49 @@
+{
+  "name": "Rescisão Indireta",
+  "nodes": [
+    {
+      "parameters": {"triggerOn": "webhook"},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "rescisao-indireta"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT d.* FROM documentos d WHERE d.caso_id = $1 ORDER BY d.data_documento ASC",
+        "additionalFields": {"queryParameters": "={{ $json.body.caso_id }}"}
+      },
+      "id": "get-docs",
+      "name": "Buscar Documentos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {"postgres": {"id": "postgres-credentials", "name": "PostgreSQL JurisPilot"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Valida checklist e gera linha do tempo\nconst docs = $input.all().map(item => item.json);\nconst checklist = ['contrato', 'holerites', 'extrato fgts', 'provas da falta grave'];\nconst presentes = docs.map(d => d.tipo_documento?.toLowerCase() || '');\nconst faltantes = checklist.filter(c => !presentes.some(p => p.includes(c) || c.includes(p)));\n\n// Ordena cronologicamente\nconst docsOrdenados = docs.sort((a, b) => {\n  const dateA = new Date(a.data_documento || a.data_upload);\n  const dateB = new Date(b.data_documento || b.data_upload);\n  return dateA - dateB;\n});\n\nreturn {\n  json: {\n    caso_id: $('Webhook Trigger').item.json.body.caso_id,\n    documentos_faltantes: faltantes,\n    linha_tempo: docsOrdenados.map(d => ({id: d.id, tipo: d.tipo_documento, data: d.data_documento})),\n    checklist_completo: faltantes.length === 0\n  }\n};"
+      },
+      "id": "validate-timeline",
+      "name": "Validar e Timeline",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {"main": [[{"node": "Buscar Documentos", "type": "main", "index": 0}]]},
+    "Buscar Documentos": {"main": [[{"node": "Validar e Timeline", "type": "main", "index": 0}]]}
+  },
+  "pinData": {},
+  "settings": {"executionOrder": "v1"},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-12-14T12:00:00.000Z",
+  "versionId": "1"
+}
+

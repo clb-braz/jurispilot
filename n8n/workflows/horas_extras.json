@@ -1,0 +1,49 @@
+{
+  "name": "Horas Extras",
+  "nodes": [
+    {
+      "parameters": {"triggerOn": "webhook"},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "horas-extras"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT d.* FROM documentos d WHERE d.caso_id = $1",
+        "additionalFields": {"queryParameters": "={{ $json.body.caso_id }}"}
+      },
+      "id": "get-docs",
+      "name": "Buscar Documentos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {"postgres": {"id": "postgres-credentials", "name": "PostgreSQL JurisPilot"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Gera quadro comparativo automático\nconst docs = $input.all().map(item => item.json);\n\nconst cartoesPonto = docs.filter(d => {\n  const tipo = d.tipo_documento?.toLowerCase() || '';\n  return tipo.includes('ponto') || tipo.includes('cartão');\n});\n\nconst contracheques = docs.filter(d => {\n  const tipo = d.tipo_documento?.toLowerCase() || '';\n  return tipo.includes('holerite') || tipo.includes('contracheque');\n});\n\nconst escalas = docs.filter(d => {\n  const tipo = d.tipo_documento?.toLowerCase() || '';\n  return tipo.includes('escala');\n});\n\nreturn {\n  json: {\n    caso_id: $('Webhook Trigger').item.json.body.caso_id,\n    quadro_comparativo: {\n      cartoes_ponto: cartoesPonto.length,\n      contracheques: contracheques.length,\n      escalas: escalas.length,\n      total_documentos: docs.length\n    },\n    documentos: {\n      cartoes_ponto: cartoesPonto.map(d => ({id: d.id, tipo: d.tipo_documento})),\n      contracheques: contracheques.map(d => ({id: d.id, tipo: d.tipo_documento})),\n      escalas: escalas.map(d => ({id: d.id, tipo: d.tipo_documento}))\n    }\n  }\n};"
+      },
+      "id": "generate-comparative",
+      "name": "Gerar Quadro Comparativo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {"main": [[{"node": "Buscar Documentos", "type": "main", "index": 0}]]},
+    "Buscar Documentos": {"main": [[{"node": "Gerar Quadro Comparativo", "type": "main", "index": 0}]]}
+  },
+  "pinData": {},
+  "settings": {"executionOrder": "v1"},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-12-14T12:00:00.000Z",
+  "versionId": "1"
+}
+

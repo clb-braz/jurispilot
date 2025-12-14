@@ -1,0 +1,106 @@
+{
+  "name": "Validação de Prova Mínima",
+  "nodes": [
+    {
+      "parameters": {"triggerOn": "webhook"},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "validacao-prova-minima"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT c.*, d.* FROM casos c LEFT JOIN documentos d ON c.id = d.caso_id WHERE c.id = $1",
+        "additionalFields": {"queryParameters": "={{ $json.body.caso_id }}"}
+      },
+      "id": "get-caso-docs",
+      "name": "Buscar Caso e Documentos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {"postgres": {"id": "postgres-credentials", "name": "PostgreSQL JurisPilot"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Analisa força probatória do caso\nconst items = $input.all();\nconst caso = items[0].json;\nconst documentos = items.slice(1).map(item => item.json).filter(d => d.id);\n\n// Calcula força probatória\nconst provasEssenciais = documentos.filter(d => d.is_essencial);\nconst relevanciaMedia = documentos.length > 0\n  ? documentos.reduce((sum, d) => sum + (d.relevancia || 5), 0) / documentos.length\n  : 0;\n\n// Identifica provas faltantes críticas\nconst tipoAcao = caso.tipo_acao?.toLowerCase() || '';\nconst alertas = [];\nconst sugestoes = [];\n\nif (tipoAcao.includes('contratual') || tipoAcao.includes('contrato')) {\n  const temContrato = documentos.some(d => d.tipo_documento?.toLowerCase().includes('contrato'));\n  if (!temContrato) {\n    alertas.push('ALERTA CRÍTICO: Ação fraca sem contrato - documento essencial ausente');\n    sugestoes.push('Solicitar contrato original');\n  }\n}\n\nif (tipoAcao.includes('trabalhista')) {\n  const temContrato = documentos.some(d => d.tipo_documento?.toLowerCase().includes('contrato'));\n  if (!temContrato) {\n    alertas.push('ALERTA: Contrato de trabalho ausente');\n    sugestoes.push('Solicitar contrato de trabalho');\n  }\n}\n\nif (tipoAcao.includes('consumidor')) {\n  const temComprovante = documentos.some(d => d.tipo_documento?.toLowerCase().includes('comprovante'));\n  if (!temComprovante) {\n    alertas.push('ALERTA: Comprovante de compra/pagamento ausente');\n    sugestoes.push('Solicitar comprovante de compra');\n  }\n}\n\n// Determina força do caso\nlet forcaProbatória = 'media';\nif (relevanciaMedia >= 8 && provasEssenciais.length >= 3) {\n  forcaProbatória = 'alta';\n} else if (relevanciaMedia < 5 || provasEssenciais.length === 0) {\n  forcaProbatória = 'baixa';\n}\n\nreturn {\n  json: {\n    caso_id: caso.id,\n    forca_probatoria: forcaProbatória,\n    relevancia_media: relevanciaMedia.toFixed(2),\n    provas_essenciais: provasEssenciais.length,\n    total_documentos: documentos.length,\n    alertas: alertas,\n    sugestoes_documentos: sugestoes,\n    analise: {\n      pontos_fortes: provasEssenciais.length > 0 ? [`${provasEssenciais.length} prova(s) essencial(is) presente(s)`] : [],\n      pontos_fracos: alertas.length > 0 ? alertas : ['Nenhum ponto fraco crítico identificado']\n    }\n  }\n};"
+      },
+      "id": "analyze-proof",
+      "name": "Analisar Força Probatória",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
+          "conditions": [{
+            "id": "check-low",
+            "leftValue": "={{ $json.forca_probatoria }}",
+            "rightValue": "baixa",
+            "operator": {"type": "string", "operation": "equals"}
+          }],
+          "combinator": "and"
+        }
+      },
+      "id": "check-force",
+      "name": "Força Baixa?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\": \"{{ $('Webhook Trigger').item.json.body.telefone }}\",\n  \"message\": \"⚠️ ALERTA: Caso com força probatória baixa\\n\\n{{ $json.alertas.join('\\n') }}\\n\\nSugestões:\\n{{ $json.sugestoes_documentos.join('\\n') }}\"\n}",
+        "options": {}
+      },
+      "id": "send-alert",
+      "name": "Enviar Alerta",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 400],
+      "credentials": {"httpHeaderAuth": {"id": "whatsapp-api", "name": "WhatsApp API"}}
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": "public",
+        "table": "casos",
+        "updateKey": "id",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "={{ $json.forca_probatoria === 'baixa' ? 'prova_insuficiente' : 'analise_completa' }}"
+          }
+        }
+      },
+      "id": "update-status",
+      "name": "Atualizar Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1050, 200],
+      "credentials": {"postgres": {"id": "postgres-credentials", "name": "PostgreSQL JurisPilot"}}
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {"main": [[{"node": "Buscar Caso e Documentos", "type": "main", "index": 0}]]},
+    "Buscar Caso e Documentos": {"main": [[{"node": "Analisar Força Probatória", "type": "main", "index": 0}]]},
+    "Analisar Força Probatória": {"main": [[{"node": "Força Baixa?", "type": "main", "index": 0}]]},
+    "Força Baixa?": {"main": [[{"node": "Atualizar Status", "type": "main", "index": 0}], [{"node": "Enviar Alerta", "type": "main", "index": 0}]]}
+  },
+  "pinData": {},
+  "settings": {"executionOrder": "v1"},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-12-14T12:00:00.000Z",
+  "versionId": "1"
+}
+

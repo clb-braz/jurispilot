@@ -1,0 +1,49 @@
+{
+  "name": "Cobrança Indevida",
+  "nodes": [
+    {
+      "parameters": {"triggerOn": "webhook"},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "cobranca-indevida"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT d.* FROM documentos d WHERE d.caso_id = $1",
+        "additionalFields": {"queryParameters": "={{ $json.body.caso_id }}"}
+      },
+      "id": "get-docs",
+      "name": "Buscar Documentos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {"postgres": {"id": "postgres-credentials", "name": "PostgreSQL JurisPilot"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Identifica repetição de indébito\nconst docs = $input.all().map(item => item.json);\nconst textos = docs.map(d => d.texto_extraido || '').join(' ').toLowerCase();\n\nconst checklist = ['faturas', 'comprovantes de pagamento', 'contrato', 'histórico de comunicação'];\nconst presentes = docs.map(d => d.tipo_documento?.toLowerCase() || '');\nconst faltantes = checklist.filter(c => !presentes.some(p => p.includes(c) || c.includes(p)));\n\n// Verifica repetição de indébito\nconst repeticaoIndebito = textos.includes('repetição') || textos.includes('repeticao') || textos.includes('indébito repetido');\n\nreturn {\n  json: {\n    caso_id: $('Webhook Trigger').item.json.body.caso_id,\n    documentos_faltantes: faltantes,\n    repeticao_indebito: repeticaoIndebito,\n    alerta: repeticaoIndebito ? 'Possível repetição de indébito identificada' : null\n  }\n};"
+      },
+      "id": "analyze-indebito",
+      "name": "Analisar Indébito",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {"main": [[{"node": "Buscar Documentos", "type": "main", "index": 0}]]},
+    "Buscar Documentos": {"main": [[{"node": "Analisar Indébito", "type": "main", "index": 0}]]}
+  },
+  "pinData": {},
+  "settings": {"executionOrder": "v1"},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-12-14T12:00:00.000Z",
+  "versionId": "1"
+}
+

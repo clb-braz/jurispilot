@@ -1,0 +1,203 @@
+{
+  "name": "Controle de Prazos",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Verificar Prazos (Horário)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM prazos WHERE status = 'pendente' AND data_vencimento >= CURRENT_DATE ORDER BY data_vencimento ASC"
+      },
+      "id": "get-prazos",
+      "name": "Buscar Prazos Pendentes",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-credentials",
+          "name": "PostgreSQL JurisPilot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Identifica prazos críticos e calcula lembretes\nconst prazos = $input.all().map(item => item.json);\nconst hoje = new Date();\nhoje.setHours(0, 0, 0, 0);\n\nconst prazosProcessados = [];\n\nfor (const prazo of prazos) {\n  const dataVenc = new Date(prazo.data_vencimento);\n  dataVenc.setHours(0, 0, 0, 0);\n  \n  const diasRestantes = Math.ceil((dataVenc - hoje) / (1000 * 60 * 60 * 24));\n  \n  let status = 'pendente';\n  let prioridade = 'normal';\n  \n  if (diasRestantes < 0) {\n    status = 'vencido';\n    prioridade = 'critico';\n  } else if (diasRestantes <= 1) {\n    prioridade = 'critico';\n  } else if (diasRestantes <= 3) {\n    prioridade = 'alta';\n  } else if (diasRestantes <= 7) {\n    prioridade = 'media';\n  }\n  \n  // Calcula data de lembrete (3 dias antes)\n  const dataLembrete = new Date(dataVenc);\n  dataLembrete.setDate(dataLembrete.getDate() - 3);\n  \n  prazosProcessados.push({\n    ...prazo,\n    dias_restantes: diasRestantes,\n    status: status,\n    prioridade: prioridade,\n    data_lembrete: dataLembrete.toISOString().split('T')[0],\n    precisa_alerta: diasRestantes <= 3 || diasRestantes < 0\n  });\n}\n\nreturn prazosProcessados.map(p => ({ json: p }));"
+      },
+      "id": "process-prazos",
+      "name": "Processar Prazos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-alert",
+              "leftValue": "={{ $json.precisa_alerta }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-alert",
+      "name": "Precisa Alerta?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": "public",
+        "table": "prazos",
+        "updateKey": "id",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "={{ $json.status }}",
+            "data_lembrete": "={{ $json.data_lembrete }}"
+          }
+        }
+      },
+      "id": "update-prazo",
+      "name": "Atualizar Prazo",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1050, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-credentials",
+          "name": "PostgreSQL JurisPilot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT c.telefone, c.nome, p.* FROM prazos p JOIN casos ca ON p.caso_id = ca.id JOIN clientes c ON ca.cliente_id = c.id WHERE p.id = $1",
+        "additionalFields": {
+          "queryParameters": "={{ $json.id }}"
+        }
+      },
+      "id": "get-cliente-info",
+      "name": "Buscar Info Cliente",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1250, 200],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-credentials",
+          "name": "PostgreSQL JurisPilot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\": \"{{ $json.telefone }}\",\n  \"message\": \"{{ $json.status === 'vencido' ? '⚠️ URGENTE: ' : '🔔 ' }}Prazo {{ $json.status === 'vencido' ? 'VENCIDO' : 'próximo do vencimento' }}\\n\\n{{ $json.descricao }}\\n\\nVencimento: {{ $json.data_vencimento }}\\nDias restantes: {{ $json.dias_restantes }}\"\n}",
+        "options": {}
+      },
+      "id": "send-whatsapp",
+      "name": "Enviar Alerta WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1450, 200],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "whatsapp-api",
+          "name": "WhatsApp API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "event",
+        "operation": "create",
+        "calendarId": {
+          "__rl": true,
+          "value": "primary",
+          "mode": "id"
+        },
+        "start": "={{ $json.data_vencimento }}T09:00:00",
+        "end": "={{ $json.data_vencimento }}T10:00:00",
+        "summary": "={{ $json.descricao }}",
+        "description": "Prazo do caso jurídico",
+        "options": {}
+      },
+      "id": "create-calendar-event",
+      "name": "Criar Evento Google Calendar",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [1250, 400],
+      "credentials": {
+        "googleCalendarOAuth2": {
+          "id": "google-calendar",
+          "name": "Google Calendar"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Verificar Prazos (Horário)": {
+      "main": [[{"node": "Buscar Prazos Pendentes", "type": "main", "index": 0}]]
+    },
+    "Buscar Prazos Pendentes": {
+      "main": [[{"node": "Processar Prazos", "type": "main", "index": 0}]]
+    },
+    "Processar Prazos": {
+      "main": [[{"node": "Precisa Alerta?", "type": "main", "index": 0}]]
+    },
+    "Precisa Alerta?": {
+      "main": [[{"node": "Atualizar Prazo", "type": "main", "index": 0}], []]
+    },
+    "Atualizar Prazo": {
+      "main": [[{"node": "Buscar Info Cliente", "type": "main", "index": 0}, {"node": "Criar Evento Google Calendar", "type": "main", "index": 0}]]
+    },
+    "Buscar Info Cliente": {
+      "main": [[{"node": "Enviar Alerta WhatsApp", "type": "main", "index": 0}]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-12-14T12:00:00.000Z",
+  "versionId": "1"
+}
+

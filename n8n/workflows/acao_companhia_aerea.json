@@ -1,0 +1,73 @@
+{
+  "name": "Ação contra Companhia Aérea",
+  "nodes": [
+    {
+      "parameters": {"triggerOn": "webhook"},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "acao-companhia-aerea"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT d.* FROM documentos d WHERE d.caso_id = $1 ORDER BY d.data_documento ASC",
+        "additionalFields": {"queryParameters": "={{ $json.body.caso_id }}"}
+      },
+      "id": "get-docs",
+      "name": "Buscar Documentos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {"postgres": {"id": "postgres-credentials", "name": "PostgreSQL JurisPilot"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Organiza documentos cronologicamente\nconst docs = $input.all().map(item => item.json);\nconst docsOrdenados = docs.sort((a, b) => {\n  const dateA = new Date(a.data_documento || a.data_upload);\n  const dateB = new Date(b.data_documento || b.data_upload);\n  return dateA - dateB;\n});\n\nconst checklist = ['comprovante de compra', 'comprovante de pagamento', 'emails', 'prints', 'protocolos'];\nconst presentes = docsOrdenados.map(d => d.tipo_documento?.toLowerCase() || '');\nconst faltantes = checklist.filter(c => !presentes.some(p => p.includes(c) || c.includes(p)));\n\nreturn {\n  json: {\n    caso_id: $('Webhook Trigger').item.json.body.caso_id,\n    documentos_ordenados: docsOrdenados.map(d => ({id: d.id, tipo: d.tipo_documento, data: d.data_documento})),\n    documentos_faltantes: faltantes,\n    organizacao_cronologica: true\n  }\n};"
+      },
+      "id": "organize-chronological",
+      "name": "Organizar Cronologicamente",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": "public",
+        "table": "linha_tempo",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "caso_id": "={{ $json.caso_id }}",
+            "evento": "Organização cronológica de provas",
+            "data_evento": "=CURRENT_DATE",
+            "tipo_evento": "organizacao",
+            "descricao": "Documentos organizados cronologicamente: {{ $json.documentos_ordenados.length }} documento(s)"
+          }
+        }
+      },
+      "id": "save-timeline",
+      "name": "Salvar na Linha do Tempo",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [850, 300],
+      "credentials": {"postgres": {"id": "postgres-credentials", "name": "PostgreSQL JurisPilot"}}
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {"main": [[{"node": "Buscar Documentos", "type": "main", "index": 0}]]},
+    "Buscar Documentos": {"main": [[{"node": "Organizar Cronologicamente", "type": "main", "index": 0}]]},
+    "Organizar Cronologicamente": {"main": [[{"node": "Salvar na Linha do Tempo", "type": "main", "index": 0}]]}
+  },
+  "pinData": {},
+  "settings": {"executionOrder": "v1"},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-12-14T12:00:00.000Z",
+  "versionId": "1"
+}
+

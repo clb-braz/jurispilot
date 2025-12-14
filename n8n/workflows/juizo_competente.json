@@ -1,0 +1,92 @@
+{
+  "name": "Relação de Consumo - Juízo Competente",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerOn": "webhook"
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "juizo-competente"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT c.*, cl.endereco, cl.cpf_cnpj FROM casos c JOIN clientes cl ON c.cliente_id = cl.id WHERE c.id = $1",
+        "additionalFields": {
+          "queryParameters": "={{ $json.body.caso_id }}"
+        }
+      },
+      "id": "get-caso-cliente",
+      "name": "Buscar Caso e Cliente",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-credentials",
+          "name": "PostgreSQL JurisPilot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Identifica domicílio do autor e sugere juízo competente\nconst caso = $input.item.json;\nconst endereco = caso.endereco || '';\nconst descricao = caso.descricao || '';\n\n// Extrai CEP do endereço\nconst cepMatch = (endereco + ' ' + descricao).match(/\\d{5}-?\\d{3}/);\nconst cep = cepMatch ? cepMatch[0].replace('-', '') : null;\n\n// Identifica cidade/estado\nlet cidade = null;\nlet estado = null;\n\nconst estados = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];\n\nfor (const uf of estados) {\n  if (endereco.toUpperCase().includes(uf)) {\n    estado = uf;\n    break;\n  }\n}\n\n// Identifica sede da empresa (se mencionada)\nlet sedeEmpresa = null;\nif (descricao.toLowerCase().includes('empresa') || descricao.toLowerCase().includes('fornecedor')) {\n  sedeEmpresa = 'A identificar'; // Seria necessário buscar em API ou banco de dados\n}\n\n// Sugere juízo competente\nlet juizoCompetente = null;\nlet justificativa = null;\n\nif (cep) {\n  // Para relação de consumo, foro do domicílio do consumidor\n  juizoCompetente = `Foro do domicílio do consumidor (CEP: ${cep})`;\n  justificativa = 'Art. 101, I, do CDC - Foro do domicílio do consumidor';\n} else if (estado) {\n  juizoCompetente = `Foro do domicílio do consumidor - ${estado}`;\n  justificativa = 'Art. 101, I, do CDC - Foro do domicílio do consumidor';\n} else {\n  juizoCompetente = 'Foro do domicílio do consumidor';\n  justificativa = 'Art. 101, I, do CDC - Foro do domicílio do consumidor (endereço a confirmar)';\n}\n\nreturn {\n  json: {\n    caso_id: caso.id,\n    juizo_competente: juizoCompetente,\n    justificativa: justificativa,\n    cep: cep,\n    cidade: cidade,\n    estado: estado,\n    sede_empresa: sedeEmpresa\n  }\n};"
+      },
+      "id": "identify-juizo",
+      "name": "Identificar Juízo Competente",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": "public",
+        "table": "casos",
+        "updateKey": "id",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "juizo_competente": "={{ $json.juizo_competente }}"
+          }
+        }
+      },
+      "id": "update-juizo",
+      "name": "Atualizar Juízo Competente",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [850, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-credentials",
+          "name": "PostgreSQL JurisPilot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [[{"node": "Buscar Caso e Cliente", "type": "main", "index": 0}]]
+    },
+    "Buscar Caso e Cliente": {
+      "main": [[{"node": "Identificar Juízo Competente", "type": "main", "index": 0}]]
+    },
+    "Identificar Juízo Competente": {
+      "main": [[{"node": "Atualizar Juízo Competente", "type": "main", "index": 0}]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-12-14T12:00:00.000Z",
+  "versionId": "1"
+}
+

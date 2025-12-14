@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="JurisPilot - Um escritório que nunca esquece documentos, nunca perde prazo e nunca atende mal um cliente.">
+    <title>JurisPilot - Automação Jurídica Operacional</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header" id="header">
+        <nav class="nav container">
+            <div class="nav__logo">
+                <img src="assets/logo.svg" alt="JurisPilot Logo" class="logo-img">
+                <h1>JurisPilot</h1>
+            </div>
+            <ul class="nav__menu">
+                <li><a href="#inicio">Início</a></li>
+                <li><a href="#funcionalidades">Funcionalidades</a></li>
+                <li><a href="#automatizacoes">Automações</a></li>
+                <li><a href="#processo">Processo</a></li>
+                <li><a href="#contato">Contato</a></li>
+            </ul>
+            <button class="btn btn--cta" onclick="openContactForm()">Falar com Especialista</button>
+            <button class="nav__mobile-toggle" id="mobileToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="hero">
+        <div class="hero__background">
+            <div class="circuit-board"></div>
+            <div class="hero__logo-large">
+                <img src="assets/logo.svg" alt="JurisPilot" class="logo-large">
+            </div>
+        </div>
+        <div class="hero__content container">
+            <div class="hero__badge fade-in">Resultados mensuráveis em 30 dias</div>
+            <h1 class="hero__title fade-in-up">
+                Um escritório que nunca esquece documentos,<br>
+                nunca perde prazo<br>
+                e nunca atende mal um cliente.
+            </h1>
+            <p class="hero__subtitle fade-in-up delay-1">
+                JurisPilot é o sistema de automação jurídica operacional que elimina tarefas administrativas repetitivas, substituindo funções humanas e eliminando gargalos que destroem produtividade.
+            </p>
+            <div class="hero__cta fade-in-up delay-2">
+                <a href="#contato" class="btn btn--primary">Falar com Especialista</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Value Proposition -->
+    <section class="value-prop">
+        <div class="container">
+            <div class="value-prop__grid">
+                <div class="value-prop__item scroll-fade-in">
+                    <div class="value-prop__icon">📞</div>
+                    <h3>Pré-atendimento 24h</h3>
+                    <p>Sem secretária, sem mensagens repetidas. Atendimento automático inteligente que captura e organiza desde o primeiro contato.</p>
+                </div>
+                <div class="value-prop__item scroll-fade-in delay-1">
+                    <div class="value-prop__icon">🧠</div>
+                    <h3>Triagem Jurídica Inteligente</h3>
+                    <p>O sistema identifica automaticamente o tipo de ação, sugere juízo competente e gera checklists probatórios perfeitos.</p>
+                </div>
+                <div class="value-prop__item scroll-fade-in delay-2">
+                    <div class="value-prop__icon">⏰</div>
+                    <h3>Controle Absoluto de Prazos</h3>
+                    <p>Leitura automática de datas, alertas proativos e integração com Google Calendar. Nenhum prazo passa despercebido.</p>
+                </div>
+                <div class="value-prop__item scroll-fade-in delay-3">
+                    <div class="value-prop__icon">📋</div>
+                    <h3>Checklists Dinâmicos</h3>
+                    <p>O sistema decide o checklist, não o advogado. Documentos obrigatórios e recomendados gerados automaticamente por tipo de ação.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Funcionalidades -->
+    <section id="funcionalidades" class="features">
+        <div class="container">
+            <h2 class="section__title scroll-fade-in">Funcionalidades Principais</h2>
+            <div class="features__grid">
+                <div class="feature__card scroll-fade-in">
+                    <div class="feature__icon">
+                        <svg viewBox="0 0 100 100" class="isometric-icon">
+                            <path d="M20,20 L80,20 L80,80 L20,80 Z" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <path d="M20,20 L50,50 L80,20" fill="none" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h3>Organização Documental Automática</h3>
+                    <p>Classificação automática de provas, organização em pastas estruturadas e geração de linha do tempo baseada em datas dos documentos.</p>
+                </div>
+                <div class="feature__card scroll-fade-in delay-1">
+                    <div class="feature__icon">
+                        <svg viewBox="0 0 100 100" class="isometric-icon">
+                            <circle cx="50" cy="30" r="15" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <path d="M30,60 Q50,50 70,60" fill="none" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h3>Resumo Jurídico Automático</h3>
+                    <p>Processamento de todos os documentos do caso, geração de resumo estruturado e identificação de pontos-chave entregues ao advogado antes do atendimento.</p>
+                </div>
+                <div class="feature__card scroll-fade-in delay-2">
+                    <div class="feature__icon">
+                        <svg viewBox="0 0 100 100" class="isometric-icon">
+                            <path d="M20,50 L40,30 L60,50 L80,30" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <line x1="20" y1="70" x2="80" y2="70" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h3>Validação de Prova Mínima</h3>
+                    <p>Análise automática de força probatória do caso, alertas sobre ausência de provas essenciais e sugestões de documentos adicionais.</p>
+                </div>
+                <div class="feature__card scroll-fade-in delay-3">
+                    <div class="feature__icon">
+                        <svg viewBox="0 0 100 100" class="isometric-icon">
+                            <rect x="30" y="30" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="50" cy="50" r="10" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <h3>Auditoria Operacional</h3>
+                    <p>Identificação de gargalos operacionais, métricas de produtividade e relatórios de onde o escritório perde tempo, dinheiro e prazos.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Métricas -->
+    <section class="metrics">
+        <div class="container">
+            <div class="metrics__grid">
+                <div class="metric__card scroll-fade-in">
+                    <div class="metric__value" data-target="90">0%</div>
+                    <div class="metric__label">de redução no tempo administrativo</div>
+                </div>
+                <div class="metric__card scroll-fade-in delay-1">
+                    <div class="metric__value" data-target="100">0%</div>
+                    <div class="metric__label">de controle de prazos</div>
+                </div>
+                <div class="metric__card scroll-fade-in delay-2">
+                    <div class="metric__value" data-target="95">0%</div>
+                    <div class="metric__label">de precisão na triagem</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Automações -->
+    <section id="automatizacoes" class="automations">
+        <div class="container">
+            <h2 class="section__title scroll-fade-in">20 Automações Jurídicas Reais</h2>
+            <p class="section__subtitle scroll-fade-in delay-1">Automações pensadas exclusivamente para escritórios de advocacia com alto volume e risco jurídico.</p>
+            
+            <div class="automations__grid">
+                <div class="automation__category scroll-fade-in">
+                    <div class="automation__header">
+                        <h3>🧾 Cível / Consumidor</h3>
+                    </div>
+                    <ul>
+                        <li>Gratuidade de Justiça</li>
+                        <li>Relação de Consumo - Juízo Competente</li>
+                        <li>Ação contra Companhia Aérea</li>
+                        <li>Cobrança Indevida</li>
+                        <li>Negativação Indevida</li>
+                    </ul>
+                </div>
+                
+                <div class="automation__category scroll-fade-in delay-1">
+                    <div class="automation__header">
+                        <h3>⚖️ Família</h3>
+                    </div>
+                    <ul>
+                        <li>Pensão Alimentícia</li>
+                        <li>Divórcio (Consensual e Litigioso)</li>
+                        <li>Guarda</li>
+                    </ul>
+                </div>
+                
+                <div class="automation__category scroll-fade-in delay-2">
+                    <div class="automation__header">
+                        <h3>💼 Trabalhista</h3>
+                    </div>
+                    <ul>
+                        <li>Rescisão Indireta</li>
+                        <li>Horas Extras</li>
+                    </ul>
+                </div>
+                
+                <div class="automation__category scroll-fade-in delay-3">
+                    <div class="automation__header">
+                        <h3>🏢 Empresarial / Contratual</h3>
+                    </div>
+                    <ul>
+                        <li>Descumprimento Contratual</li>
+                        <li>Cobrança Empresarial</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Como Funciona -->
+    <section class="how-it-works">
+        <div class="container">
+            <h2 class="section__title scroll-fade-in">Como Funciona</h2>
+            <div class="steps">
+                <div class="step scroll-fade-in">
+                    <div class="step__visual">
+                        <div class="isometric-box">
+                            <div class="box-face front"></div>
+                            <div class="box-face top"></div>
+                            <div class="box-face right"></div>
+                        </div>
+                    </div>
+                    <div class="step__number">1</div>
+                    <h3>Cliente inicia contato</h3>
+                    <p>Via WhatsApp ou formulário, 24 horas por dia, sem necessidade de secretária.</p>
+                </div>
+                <div class="step scroll-fade-in delay-1">
+                    <div class="step__visual">
+                        <div class="isometric-box">
+                            <div class="box-face front"></div>
+                            <div class="box-face top"></div>
+                            <div class="box-face right"></div>
+                        </div>
+                    </div>
+                    <div class="step__number">2</div>
+                    <h3>Triagem automática</h3>
+                    <p>O sistema identifica o tipo de ação e gera checklist dinâmico automaticamente.</p>
+                </div>
+                <div class="step scroll-fade-in delay-2">
+                    <div class="step__visual">
+                        <div class="isometric-box">
+                            <div class="box-face front"></div>
+                            <div class="box-face top"></div>
+                            <div class="box-face right"></div>
+                        </div>
+                    </div>
+                    <div class="step__number">3</div>
+                    <h3>Upload de documentos</h3>
+                    <p>Cliente recebe link seguro para upload. Documentos são processados e classificados automaticamente.</p>
+                </div>
+                <div class="step scroll-fade-in delay-3">
+                    <div class="step__visual">
+                        <div class="isometric-box">
+                            <div class="box-face front"></div>
+                            <div class="box-face top"></div>
+                            <div class="box-face right"></div>
+                        </div>
+                    </div>
+                    <div class="step__number">4</div>
+                    <h3>Resumo jurídico pronto</h3>
+                    <p>Advogado recebe caso completo, com resumo, linha do tempo e alertas de prazos, pronto para análise estratégica.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Processo de Desenvolvimento -->
+    <section id="processo" class="development-process">
+        <div class="container">
+            <h2 class="section__title scroll-fade-in">Processo de Desenvolvimento</h2>
+            <div class="process__tabs">
+                <button class="process__tab active" data-step="1">Planejamento</button>
+                <button class="process__tab" data-step="2">Pesquisa</button>
+                <button class="process__tab" data-step="3">Construção</button>
+                <button class="process__tab" data-step="4">Implantação</button>
+                <button class="process__tab" data-step="5">Medição</button>
+            </div>
+            <div class="process__content">
+                <div class="process__step active" data-step="1">
+                    <div class="process__text">
+                        <h3>Planejamento</h3>
+                        <p>A fase de Planejamento é onde definimos os alicerces do projeto de automação jurídica. Entendemos a fundo as dores do escritório e os processos atuais. É crucial concordarmos com os KPIs, métricas e o ROI esperado, garantindo que todos estejam alinhados com os objetivos e as expectativas de sucesso do projeto.</p>
+                        <button class="btn btn--secondary">Entre em contato</button>
+                    </div>
+                    <div class="process__visual">
+                        <div class="isometric-planning"></div>
+                    </div>
+                </div>
+                <div class="process__step" data-step="2">
+                    <div class="process__text">
+                        <h3>Pesquisa</h3>
+                        <p>Na fase de Pesquisa, nosso foco é validar o que planejamos e criar um protótipo inicial. Organizamos os dados e definimos como vamos medir o progresso. Isso nos ajuda a ter certeza de que estamos no caminho certo antes de construir a solução completa.</p>
+                        <button class="btn btn--secondary">Saiba Mais</button>
+                    </div>
+                    <div class="process__visual">
+                        <div class="isometric-research"></div>
+                    </div>
+                </div>
+                <div class="process__step" data-step="3">
+                    <div class="process__text">
+                        <h3>Construção</h3>
+                        <p>Na fase de Construção, colocamos a mão na massa para desenvolver o projeto. Implementamos a arquitetura e o design, integramos os sistemas e construímos de fato o que planejamos. Também é a hora de testar tudo para garantir que funcione perfeitamente antes da implantação.</p>
+                        <button class="btn btn--secondary">Implemente agora!</button>
+                    </div>
+                    <div class="process__visual">
+                        <div class="isometric-construction"></div>
+                    </div>
+                </div>
+                <div class="process__step" data-step="4">
+                    <div class="process__text">
+                        <h3>Implantação</h3>
+                        <p>Na fase de Implantação, colocamos a solução em prática. Primeiro, fazemos testes internos e depois com os usuários para ter certeza de que tudo está funcionando como esperado. Uma vez aprovado, implementamos em produção, liberando a solução para ser usada de verdade.</p>
+                        <button class="btn btn--secondary">Fale com um Especialista</button>
+                    </div>
+                    <div class="process__visual">
+                        <div class="isometric-implementation"></div>
+                    </div>
+                </div>
+                <div class="process__step" data-step="5">
+                    <div class="process__text">
+                        <h3>Medição</h3>
+                        <p>Na fase de Medição, analisamos os resultados do projeto de automação. Revisamos métricas e KPIs, coletamos feedback dos usuários e medimos o retorno sobre o investimento (ROI) para entender o impacto. Isso nos ajuda a planejar as próximas melhorias e aprimorar continuamente a solução.</p>
+                        <button class="btn btn--secondary">Entre em contato</button>
+                    </div>
+                    <div class="process__visual">
+                        <div class="isometric-measurement"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefícios -->
+    <section class="benefits">
+        <div class="container">
+            <h2 class="section__title scroll-fade-in">Resultado Final</h2>
+            <div class="benefits__content scroll-fade-in delay-1">
+                <p class="benefits__quote">"Isso resolveria 90% do caos do meu escritório."</p>
+                <div class="benefits__list">
+                    <div class="benefit__item">
+                        <strong>Escritório pequeno</strong> opera como médio
+                    </div>
+                    <div class="benefit__item">
+                        <strong>Escritório médio</strong> opera como grande
+                    </div>
+                    <div class="benefit__item">
+                        <strong>Escritório grande</strong> reduz custo operacional drasticamente
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq">
+        <div class="container">
+            <h2 class="section__title scroll-fade-in">Perguntas Frequentes</h2>
+            <div class="faq__list">
+                <div class="faq__item scroll-fade-in">
+                    <div class="faq__question">
+                        <h3>O que é o JurisPilot?</h3>
+                        <span class="faq__icon">+</span>
+                    </div>
+                    <div class="faq__answer">
+                        <p>O JurisPilot é um sistema completo de automação jurídica operacional que elimina tarefas administrativas repetitivas em escritórios de advocacia. Ele substitui funções humanas administrativas, automatizando pré-atendimento, triagem jurídica, organização documental, controle de prazos e geração de resumos jurídicos.</p>
+                    </div>
+                </div>
+                <div class="faq__item scroll-fade-in delay-1">
+                    <div class="faq__question">
+                        <h3>Como funciona a automação de checklists?</h3>
+                        <span class="faq__icon">+</span>
+                    </div>
+                    <div class="faq__answer">
+                        <p>O sistema identifica automaticamente o tipo de ação jurídica e gera um checklist dinâmico com documentos obrigatórios e recomendados específicos para cada caso. O advogado não precisa decidir quais documentos solicitar - o sistema faz isso automaticamente baseado em regras jurídicas pré-configuradas.</p>
+                    </div>
+                </div>
+                <div class="faq__item scroll-fade-in delay-2">
+                    <div class="faq__question">
+                        <h3>Quanto tempo leva para implementar?</h3>
+                        <span class="faq__icon">+</span>
+                    </div>
+                    <div class="faq__answer">
+                        <p>A implementação completa do JurisPilot pode ser feita em 30 dias. O sistema já vem com 20 automações pré-configuradas para os principais tipos de ações jurídicas. A configuração inicial e treinamento são rápidos, permitindo que o escritório comece a ver resultados mensuráveis em pouco tempo.</p>
+                    </div>
+                </div>
+                <div class="faq__item scroll-fade-in delay-3">
+                    <div class="faq__question">
+                        <h3>O sistema funciona com meu sistema atual?</h3>
+                        <span class="faq__icon">+</span>
+                    </div>
+                    <div class="faq__answer">
+                        <p>Sim! O JurisPilot foi desenvolvido para ser integrado com sistemas existentes. Ele se conecta via APIs e webhooks, permitindo integração com WhatsApp, Google Calendar, sistemas de gestão jurídica e outros. Nossa equipe trabalha com você para garantir uma integração suave sem interrupção dos processos atuais.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contato -->
+    <section id="contato" class="contact">
+        <div class="container">
+            <h2 class="section__title scroll-fade-in">Entre em Contato</h2>
+            <p class="section__subtitle scroll-fade-in delay-1">Solicite uma demonstração e descubra como o JurisPilot pode transformar seu escritório.</p>
+            <form class="contact__form" id="contactForm">
+                <div class="form__group scroll-fade-in">
+                    <input type="text" id="nome" name="nome" placeholder="Seu nome" required>
+                </div>
+                <div class="form__group scroll-fade-in delay-1">
+                    <input type="tel" id="telefone" name="telefone" placeholder="Seu telefone" required>
+                </div>
+                <div class="form__group scroll-fade-in delay-2">
+                    <input type="email" id="email" name="email" placeholder="Seu e-mail" required>
+                </div>
+                <div class="form__group scroll-fade-in delay-3">
+                    <textarea id="mensagem" name="mensagem" placeholder="Sua mensagem" rows="5" required></textarea>
+                </div>
+                <button type="submit" class="btn btn--primary scroll-fade-in delay-4">
+                    <span class="btn__text">Enviar Mensagem</span>
+                    <span class="btn__loader" style="display: none;"></span>
+                </button>
+                <div class="form__message" id="formMessage"></div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__content">
+            <div class="footer__section">
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                    <img src="assets/logo.svg" alt="JurisPilot" style="width: 32px; height: 32px; filter: drop-shadow(0 0 10px rgba(155, 89, 182, 0.5));">
+                    <h3>JurisPilot</h3>
+                </div>
+                <p>Automação Jurídica Operacional</p>
+            </div>
+                <div class="footer__section">
+                    <h4>Navegação</h4>
+                    <ul>
+                        <li><a href="#inicio">Início</a></li>
+                        <li><a href="#funcionalidades">Funcionalidades</a></li>
+                        <li><a href="#automatizacoes">Automações</a></li>
+                        <li><a href="#processo">Processo</a></li>
+                        <li><a href="#contato">Contato</a></li>
+                    </ul>
+                </div>
+                <div class="footer__section">
+                    <h4>Contato</h4>
+                    <p>ispautopilot@gmail.com</p>
+                </div>
+            </div>
+            <div class="footer__bottom">
+                <p>&copy; 2024 JurisPilot. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Chat Widget -->
+    <div class="chat-widget" id="chatWidget">
+        <div class="chat-widget__bubble" onclick="toggleChat()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+        </div>
+        <div class="chat-widget__message" id="chatMessage">
+            Me conte a sua dor e saiba como podemos te ajudar!
+        </div>
+        <div class="chat-widget__panel" id="chatPanel">
+            <div class="chat-widget__header">
+                <h4>Falar com Especialista</h4>
+                <button onclick="toggleChat()" class="chat-widget__close">×</button>
+            </div>
+            <form class="chat-widget__form" id="chatForm">
+                <input type="text" placeholder="Seu nome" name="nome" required>
+                <input type="tel" placeholder="Seu telefone" name="telefone" required>
+                <input type="email" placeholder="Seu e-mail" name="email" required>
+                <button type="submit" class="btn btn--primary">Enviar</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="js/form.js"></script>
+</body>
+</html>

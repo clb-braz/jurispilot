@@ -1,0 +1,97 @@
+{
+  "name": "Auditoria Operacional",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {"interval": [{"field": "days", "daysInterval": 1}]}
+      },
+      "id": "schedule-trigger",
+      "name": "Trigger Diário",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT c.*, COUNT(d.id) as num_documentos, AVG(EXTRACT(EPOCH FROM (d.data_upload - c.created_at))/86400) as tempo_medio_documentos FROM casos c LEFT JOIN documentos d ON c.id = d.caso_id GROUP BY c.id"
+      },
+      "id": "get-metrics",
+      "name": "Buscar Métricas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {"postgres": {"id": "postgres-credentials", "name": "PostgreSQL JurisPilot"}}
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*) as total, COUNT(CASE WHEN status = 'vencido' THEN 1 END) as vencidos FROM prazos WHERE data_vencimento >= CURRENT_DATE - INTERVAL '30 days'"
+      },
+      "id": "get-prazos-metrics",
+      "name": "Métricas de Prazos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 500],
+      "credentials": {"postgres": {"id": "postgres-credentials", "name": "PostgreSQL JurisPilot"}}
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT cc.caso_id, COUNT(*) as faltantes FROM checklists_caso cc WHERE cc.status = 'pendente' GROUP BY cc.caso_id"
+      },
+      "id": "get-docs-faltantes",
+      "name": "Documentos Faltantes",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 700],
+      "credentials": {"postgres": {"id": "postgres-credentials", "name": "PostgreSQL JurisPilot"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Identifica gargalos operacionais\nconst casos = $('Buscar Métricas').all().map(item => item.json);\nconst prazos = $('Métricas de Prazos').item.json;\nconst docsFaltantes = $('Documentos Faltantes').all().map(item => item.json);\n\n// Calcula métricas\nconst tempoMedioTriagem = casos.length > 0\n  ? casos.reduce((sum, c) => sum + (parseFloat(c.tempo_medio_documentos) || 0), 0) / casos.length\n  : 0;\n\nconst casosSemDocumentos = casos.filter(c => parseInt(c.num_documentos) === 0).length;\nconst casosComDocumentosFaltantes = docsFaltantes.length;\nconst prazosVencidos = parseInt(prazos.vencidos) || 0;\nconst totalPrazos = parseInt(prazos.total) || 0;\n\n// Identifica gargalos\nconst gargalos = [];\n\nif (tempoMedioTriagem > 7) {\n  gargalos.push({\n    tipo: 'tempo_triagem',\n    descricao: `Tempo médio de triagem alto: ${tempoMedioTriagem.toFixed(1)} dias`,\n    impacto: 'Alto',\n    sugestao: 'Automatizar mais etapas da triagem'\n  });\n}\n\nif (casosSemDocumentos > casos.length * 0.3) {\n  gargalos.push({\n    tipo: 'documentos_faltantes',\n    descricao: `${casosSemDocumentos} casos sem documentos (${((casosSemDocumentos/casos.length)*100).toFixed(1)}%)`,\n    impacto: 'Alto',\n    sugestao: 'Melhorar comunicação com clientes sobre upload de documentos'\n  });\n}\n\nif (prazosVencidos > 0) {\n  const percentualVencidos = totalPrazos > 0 ? (prazosVencidos / totalPrazos * 100).toFixed(1) : 0;\n  gargalos.push({\n    tipo: 'prazos_perdidos',\n    descricao: `${prazosVencidos} prazo(s) vencido(s) (${percentualVencidos}%)`,\n    impacto: 'Crítico',\n    sugestao: 'Implementar alertas mais proativos'\n  });\n}\n\nif (casosComDocumentosFaltantes > casos.length * 0.5) {\n  gargalos.push({\n    tipo: 'checklist_incompleto',\n    descricao: `${casosComDocumentosFaltantes} casos com documentos faltantes`,\n    impacto: 'Médio',\n    sugestao: 'Automatizar solicitação de documentos faltantes'\n  });\n}\n\n// Calcula perdas estimadas\nconst perdaTempo = casos.length * tempoMedioTriagem * 0.5; // horas estimadas\nconst perdaDinheiro = prazosVencidos * 500; // R$ estimado por prazo perdido\n\nreturn {\n  json: {\n    data_auditoria: new Date().toISOString().split('T')[0],\n    metricas: {\n      total_casos: casos.length,\n      tempo_medio_triagem: tempoMedioTriagem.toFixed(2),\n      casos_sem_documentos: casosSemDocumentos,\n      casos_com_docs_faltantes: casosComDocumentosFaltantes,\n      prazos_vencidos: prazosVencidos,\n      total_prazos: totalPrazos\n    },\n    gargalos: gargalos,\n    perdas_estimadas: {\n      tempo_horas: perdaTempo.toFixed(2),\n      dinheiro_reais: perdaDinheiro.toFixed(2)\n    },\n    recomendacoes: gargalos.map(g => g.sugestao)\n  }\n};"
+      },
+      "id": "analyze-bottlenecks",
+      "name": "Analisar Gargalos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 500]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": "public",
+        "table": "auditoria_operacional",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "tipo_metrica": "={{ $json.tipo }}",
+            "valor_metrica": "={{ $json.descricao }}",
+            "descricao": "={{ JSON.stringify($json) }}"
+          }
+        }
+      },
+      "id": "save-audit",
+      "name": "Salvar Auditoria",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [850, 500],
+      "credentials": {"postgres": {"id": "postgres-credentials", "name": "PostgreSQL JurisPilot"}}
+    }
+  ],
+  "connections": {
+    "Trigger Diário": {"main": [[{"node": "Buscar Métricas", "type": "main", "index": 0}, {"node": "Métricas de Prazos", "type": "main", "index": 0}, {"node": "Documentos Faltantes", "type": "main", "index": 0}]]},
+    "Buscar Métricas": {"main": [[{"node": "Analisar Gargalos", "type": "main", "index": 0}]]},
+    "Métricas de Prazos": {"main": [[{"node": "Analisar Gargalos", "type": "main", "index": 0}]]},
+    "Documentos Faltantes": {"main": [[{"node": "Analisar Gargalos", "type": "main", "index": 0}]]},
+    "Analisar Gargalos": {"main": [[{"node": "Salvar Auditoria", "type": "main", "index": 0}]]}
+  },
+  "pinData": {},
+  "settings": {"executionOrder": "v1"},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-12-14T12:00:00.000Z",
+  "versionId": "1"
+}
+

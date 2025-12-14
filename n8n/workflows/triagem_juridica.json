@@ -1,0 +1,112 @@
+{
+  "name": "Triagem Jurídica Inteligente",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerOn": "webhook"
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "triagem-juridica"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM casos WHERE id = $1",
+        "additionalFields": {
+          "queryParameters": "={{ $json.body.caso_id }}"
+        }
+      },
+      "id": "get-caso",
+      "name": "Buscar Caso",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-credentials",
+          "name": "PostgreSQL JurisPilot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Análise inteligente da descrição do caso\nconst descricao = $input.item.json.descricao || '';\nconst tipoAcao = $input.item.json.tipo_acao || '';\n\n// Identifica tipo de ação mais específico\nlet tipoDetalhado = tipoAcao;\nconst descricaoLower = descricao.toLowerCase();\n\nif (descricaoLower.includes('companhia aérea') || descricaoLower.includes('aérea')) {\n  tipoDetalhado = 'Ação contra Companhia Aérea';\n} else if (descricaoLower.includes('negativação') || descricaoLower.includes('spc') || descricaoLower.includes('serasa')) {\n  tipoDetalhado = 'Negativação Indevida';\n} else if (descricaoLower.includes('consensual')) {\n  tipoDetalhado = 'Divórcio Consensual';\n} else if (descricaoLower.includes('litigioso')) {\n  tipoDetalhado = 'Divórcio Litigioso';\n}\n\n// Identifica juízo competente (se aplicável)\nlet juizoCompetente = null;\n\nif (descricaoLower.includes('consumidor') || descricaoLower.includes('consumo')) {\n  // Para relação de consumo, identifica domicílio\n  const cepMatch = descricao.match(/\\d{5}-?\\d{3}/);\n  if (cepMatch) {\n    juizoCompetente = `Foro do domicílio do consumidor (CEP: ${cepMatch[0]})`;\n  } else {\n    juizoCompetente = 'Foro do domicílio do consumidor';\n  }\n}\n\nreturn {\n  json: {\n    caso_id: $input.item.json.id,\n    tipo_acao: tipoDetalhado,\n    juizo_competente: juizoCompetente,\n    descricao_analisada: descricao\n  }\n};"
+      },
+      "id": "analyze-case",
+      "name": "Analisar Caso",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": "public",
+        "table": "casos",
+        "updateKey": "id",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "tipo_acao": "={{ $json.tipo_acao }}",
+            "juizo_competente": "={{ $json.juizo_competente }}",
+            "status": "triagem_completa"
+          }
+        }
+      },
+      "id": "update-caso",
+      "name": "Atualizar Caso",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [850, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-credentials",
+          "name": "PostgreSQL JurisPilot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/checklist/generate",
+        "authentication": "none",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"tipo_acao\": \"{{ $json.tipo_acao }}\",\n  \"caso_id\": \"{{ $json.caso_id }}\"\n}",
+        "options": {}
+      },
+      "id": "generate-checklist",
+      "name": "Gerar Checklist Dinâmico",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [[{"node": "Buscar Caso", "type": "main", "index": 0}]]
+    },
+    "Buscar Caso": {
+      "main": [[{"node": "Analisar Caso", "type": "main", "index": 0}]]
+    },
+    "Analisar Caso": {
+      "main": [[{"node": "Atualizar Caso", "type": "main", "index": 0}]]
+    },
+    "Atualizar Caso": {
+      "main": [[{"node": "Gerar Checklist Dinâmico", "type": "main", "index": 0}]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-12-14T12:00:00.000Z",
+  "versionId": "1"
+}
+

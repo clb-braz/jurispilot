@@ -1,0 +1,60 @@
+{
+  "name": "Divórcio",
+  "nodes": [
+    {
+      "parameters": {"triggerOn": "webhook"},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "divorcio"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Determina se é consensual ou litigioso e gera checklist dinâmico\nconst descricao = $input.item.json.body.descricao || '';\nconst descricaoLower = descricao.toLowerCase();\n\nconst isConsensual = descricaoLower.includes('consensual') || descricaoLower.includes('amigável') || descricaoLower.includes('amigavel');\n\nconst checklistConsensual = ['Certidão de casamento', 'CPF de ambos', 'RG de ambos', 'Comprovante de residência'];\nconst checklistLitigioso = [...checklistConsensual, 'Comprovantes de renda', 'Documentos de bens', 'Documentos de dívidas'];\n\nreturn {\n  json: {\n    caso_id: $input.item.json.body.caso_id,\n    tipo_divorcio: isConsensual ? 'consensual' : 'litigioso',\n    checklist: isConsensual ? checklistConsensual : checklistLitigioso,\n    separacao_automatica: true\n  }\n};"
+      },
+      "id": "determine-type",
+      "name": "Determinar Tipo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT d.* FROM documentos d WHERE d.caso_id = $1",
+        "additionalFields": {"queryParameters": "={{ $json.caso_id }}"}
+      },
+      "id": "get-docs",
+      "name": "Buscar Documentos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [650, 300],
+      "credentials": {"postgres": {"id": "postgres-credentials", "name": "PostgreSQL JurisPilot"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Separa bens, dívidas e provas\nconst docs = $input.all().slice(1).map(item => item.json);\nconst tipoDivorcio = $('Determinar Tipo').item.json.tipo_divorcio;\n\nconst bens = docs.filter(d => {\n  const tipo = d.tipo_documento?.toLowerCase() || '';\n  return tipo.includes('imóvel') || tipo.includes('veículo') || tipo.includes('propriedade');\n});\n\nconst dividas = docs.filter(d => {\n  const tipo = d.tipo_documento?.toLowerCase() || '';\n  return tipo.includes('dívida') || tipo.includes('divida') || tipo.includes('financiamento');\n});\n\nconst provas = docs.filter(d => d.classificacao_prova && d.classificacao_prova !== 'outro');\n\nreturn {\n  json: {\n    caso_id: $('Determinar Tipo').item.json.caso_id,\n    tipo_divorcio: tipoDivorcio,\n    bens: bens.map(d => ({id: d.id, tipo: d.tipo_documento})),\n    dividas: dividas.map(d => ({id: d.id, tipo: d.tipo_documento})),\n    provas: provas.map(d => ({id: d.id, tipo: d.tipo_documento, classificacao: d.classificacao_prova}))\n  }\n};"
+      },
+      "id": "separate-items",
+      "name": "Separar Bens/Dívidas/Provas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {"main": [[{"node": "Determinar Tipo", "type": "main", "index": 0}]]},
+    "Determinar Tipo": {"main": [[{"node": "Buscar Documentos", "type": "main", "index": 0}]]},
+    "Buscar Documentos": {"main": [[{"node": "Separar Bens/Dívidas/Provas", "type": "main", "index": 0}]]}
+  },
+  "pinData": {},
+  "settings": {"executionOrder": "v1"},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-12-14T12:00:00.000Z",
+  "versionId": "1"
+}
+

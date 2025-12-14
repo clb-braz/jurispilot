@@ -1,0 +1,59 @@
+{
+  "name": "Negativação Indevida",
+  "nodes": [
+    {
+      "parameters": {"triggerOn": "webhook"},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "negativacao-indevida"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Solicita consultas SPC/Serasa e gera linha do tempo\nconst casoId = $input.item.json.body.caso_id;\n\nreturn {\n  json: {\n    caso_id: casoId,\n    documentos_solicitados: ['Consulta SPC/Serasa', 'Comprovantes de pagamento', 'Comunicação prévia'],\n    linha_tempo_automatica: true\n  }\n};"
+      },
+      "id": "request-docs",
+      "name": "Solicitar Documentos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": "public",
+        "table": "linha_tempo",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "caso_id": "={{ $json.caso_id }}",
+            "evento": "Solicitação de documentos para negativação indevida",
+            "data_evento": "=CURRENT_DATE",
+            "tipo_evento": "solicitacao",
+            "descricao": "Documentos solicitados: {{ $json.documentos_solicitados.join(', ') }}"
+          }
+        }
+      },
+      "id": "save-timeline",
+      "name": "Salvar Linha do Tempo",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [650, 300],
+      "credentials": {"postgres": {"id": "postgres-credentials", "name": "PostgreSQL JurisPilot"}}
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {"main": [[{"node": "Solicitar Documentos", "type": "main", "index": 0}]]},
+    "Solicitar Documentos": {"main": [[{"node": "Salvar Linha do Tempo", "type": "main", "index": 0}]]}
+  },
+  "pinData": {},
+  "settings": {"executionOrder": "v1"},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-12-14T12:00:00.000Z",
+  "versionId": "1"
+}
+

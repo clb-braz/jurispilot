@@ -1,0 +1,49 @@
+{
+  "name": "Pensão Alimentícia",
+  "nodes": [
+    {
+      "parameters": {"triggerOn": "webhook"},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "pensao-alimenticia"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT d.* FROM documentos d WHERE d.caso_id = $1",
+        "additionalFields": {"queryParameters": "={{ $json.body.caso_id }}"}
+      },
+      "id": "get-docs",
+      "name": "Buscar Documentos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {"postgres": {"id": "postgres-credentials", "name": "PostgreSQL JurisPilot"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Gera resumo financeiro automático\nconst docs = $input.all().map(item => item.json);\nconst valores = docs.flatMap(d => d.valores_encontrados || []);\nconst total = valores.reduce((sum, v) => sum + v, 0);\n\nconst checklist = ['certidão de nascimento', 'comprovantes de renda', 'despesas do menor'];\nconst presentes = docs.map(d => d.tipo_documento?.toLowerCase() || '');\nconst faltantes = checklist.filter(c => !presentes.some(p => p.includes(c) || c.includes(p)));\n\nreturn {\n  json: {\n    caso_id: $('Webhook Trigger').item.json.body.caso_id,\n    resumo_financeiro: {\n      total_valores: total,\n      valores_identificados: valores,\n      quantidade_documentos: docs.length\n    },\n    documentos_faltantes: faltantes\n  }\n};"
+      },
+      "id": "generate-financial",
+      "name": "Gerar Resumo Financeiro",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {"main": [[{"node": "Buscar Documentos", "type": "main", "index": 0}]]},
+    "Buscar Documentos": {"main": [[{"node": "Gerar Resumo Financeiro", "type": "main", "index": 0}]]}
+  },
+  "pinData": {},
+  "settings": {"executionOrder": "v1"},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-12-14T12:00:00.000Z",
+  "versionId": "1"
+}
+

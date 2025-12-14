@@ -1,0 +1,88 @@
+═══════════════════════════════════════════════════════════════
+  COMO VER O SITE JURISPILOT - GUIA RÁPIDO
+═══════════════════════════════════════════════════════════════
+
+MÉTODO 1: DUPLO CLIQUE (MAIS RÁPIDO)
+────────────────────────────────────
+1. Vá até: D:\JurisPilot\site\
+2. Dê duplo clique em: index.html
+3. O site abrirá no seu navegador!
+
+
+MÉTODO 2: SERVIDOR LOCAL (RECOMENDADO)
+──────────────────────────────────────
+1. Abra o Prompt de Comando (cmd)
+2. Digite:
+   cd D:\JurisPilot\site
+   python -m http.server 8000
+
+3. Abra seu navegador e acesse:
+   http://localhost:8000
+
+
+MÉTODO 3: VIA NAVEGADOR DIRETO
+───────────────────────────────
+1. Abra seu navegador (Chrome, Firefox, Edge)
+2. Pressione Ctrl + O (ou File → Open)
+3. Navegue até: D:\JurisPilot\site\index.html
+4. Selecione e abra
+
+
+═══════════════════════════════════════════════════════════════
+  TESTAR O FORMULÁRIO
+═══════════════════════════════════════════════════════════════
+
+1. Role a página até a seção "Entre em Contato"
+2. Preencha:
+   - Nome: Seu nome
+   - Telefone: Seu telefone
+   - Email: Seu email
+   - Mensagem: Sua mensagem
+
+3. Clique em "Enviar Mensagem"
+4. Você verá uma mensagem de sucesso
+5. O email será enviado para: ispautopilot@gmail.com
+
+
+═══════════════════════════════════════════════════════════════
+  O QUE VOCÊ VERÁ NO SITE
+═══════════════════════════════════════════════════════════════
+
+✅ Header fixo com logo e navegação
+✅ Hero section com mensagem principal e gráfico tecnológico
+✅ Cards com animações ao passar o mouse
+✅ Métricas que contam automaticamente
+✅ Processo de desenvolvimento interativo (clique nas tabs)
+✅ FAQ que expande ao clicar
+✅ Formulário de contato funcional
+✅ Chat widget no canto inferior direito
+
+
+═══════════════════════════════════════════════════════════════
+  DICAS
+═══════════════════════════════════════════════════════════════
+
+• Role a página devagar para ver as animações
+• Passe o mouse sobre os cards para ver os efeitos
+• Clique nas tabs do "Processo de Desenvolvimento"
+• Clique nas perguntas do FAQ para expandir
+• Teste o chat widget no canto inferior direito
+• Teste o formulário de contato
+
+
+═══════════════════════════════════════════════════════════════
+  PROBLEMAS?
+═══════════════════════════════════════════════════════════════
+
+Se o site não abrir:
+• Verifique se o arquivo index.html existe
+• Tente usar o Método 2 (servidor local)
+• Verifique se o navegador está atualizado
+
+Se as animações não funcionarem:
+• Verifique se o JavaScript está habilitado
+• Abra o Console do navegador (F12) para ver erros
+
+
+═══════════════════════════════════════════════════════════════
+

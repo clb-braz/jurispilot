@@ -1,0 +1,159 @@
+{
+  "name": "Pré-Atendimento 24h",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-whatsapp",
+      "name": "Webhook WhatsApp",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "pre-atendimento"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": "public",
+        "table": "clientes",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "nome": "={{ $json.body.nome }}",
+            "telefone": "={{ $json.body.telefone }}",
+            "email": "={{ $json.body.email }}",
+            "cpf_cnpj": "={{ $json.body.cpf_cnpj }}"
+          }
+        }
+      },
+      "id": "insert-cliente",
+      "name": "Criar Cliente",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-credentials",
+          "name": "PostgreSQL JurisPilot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Classificação inicial do tipo de demanda\nconst descricao = $input.item.json.body.descricao || '';\nconst descricaoLower = descricao.toLowerCase();\n\nlet tipoAcao = 'Outro';\n\nif (descricaoLower.includes('gratuidade') || descricaoLower.includes('hipossuficiente')) {\n  tipoAcao = 'Gratuidade de Justiça';\n} else if (descricaoLower.includes('pensão') || descricaoLower.includes('alimentícia')) {\n  tipoAcao = 'Pensão Alimentícia';\n} else if (descricaoLower.includes('divórcio') || descricaoLower.includes('divorcio')) {\n  tipoAcao = 'Divórcio';\n} else if (descricaoLower.includes('consumidor') || descricaoLower.includes('consumo')) {\n  tipoAcao = 'Relação de Consumo';\n} else if (descricaoLower.includes('trabalhista') || descricaoLower.includes('rescisão')) {\n  tipoAcao = 'Rescisão Indireta';\n} else if (descricaoLower.includes('horas extra')) {\n  tipoAcao = 'Horas Extras';\n} else if (descricaoLower.includes('cobrança') || descricaoLower.includes('cobranca')) {\n  tipoAcao = 'Cobrança Indevida';\n}\n\nreturn {\n  json: {\n    tipo_acao: tipoAcao,\n    cliente_id: $input.item.json.id,\n    descricao: descricao\n  }\n};"
+      },
+      "id": "classify-demand",
+      "name": "Classificar Demanda",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": "public",
+        "table": "casos",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "cliente_id": "={{ $json.cliente_id }}",
+            "tipo_acao": "={{ $json.tipo_acao }}",
+            "descricao": "={{ $json.descricao }}",
+            "status": "em_triagem"
+          }
+        }
+      },
+      "id": "create-caso",
+      "name": "Criar Caso",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [850, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-credentials",
+          "name": "PostgreSQL JurisPilot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/checklist/generate",
+        "authentication": "none",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"tipo_acao\": \"{{ $json.tipo_acao }}\",\n  \"caso_id\": \"{{ $json.id }}\"\n}",
+        "options": {}
+      },
+      "id": "generate-checklist",
+      "name": "Gerar Checklist",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/upload/generate-link",
+        "authentication": "none",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"caso_id\": \"{{ $('Criar Caso').item.json.id }}\",\n  \"expires_in\": 86400\n}",
+        "options": {}
+      },
+      "id": "generate-upload-link",
+      "name": "Gerar Link Upload",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\": \"{{ $('Criar Cliente').item.json.telefone }}\",\n  \"message\": \"Olá! Seu caso foi registrado no JurisPilot.\\n\\nTipo: {{ $('Classificar Demanda').item.json.tipo_acao }}\\n\\nPara enviar seus documentos, acesse:\\n{{ $json.upload_link }}\\n\\nEste link expira em 24 horas.\"\n}",
+        "options": {}
+      },
+      "id": "send-whatsapp",
+      "name": "Enviar WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1450, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "whatsapp-api",
+          "name": "WhatsApp API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook WhatsApp": {
+      "main": [[{"node": "Criar Cliente", "type": "main", "index": 0}]]
+    },
+    "Criar Cliente": {
+      "main": [[{"node": "Classificar Demanda", "type": "main", "index": 0}]]
+    },
+    "Classificar Demanda": {
+      "main": [[{"node": "Criar Caso", "type": "main", "index": 0}]]
+    },
+    "Criar Caso": {
+      "main": [[{"node": "Gerar Checklist", "type": "main", "index": 0}]]
+    },
+    "Gerar Checklist": {
+      "main": [[{"node": "Gerar Link Upload", "type": "main", "index": 0}]]
+    },
+    "Gerar Link Upload": {
+      "main": [[{"node": "Enviar WhatsApp", "type": "main", "index": 0}]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-12-14T12:00:00.000Z",
+  "versionId": "1"
+}
+

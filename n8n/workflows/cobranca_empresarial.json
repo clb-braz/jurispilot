@@ -1,0 +1,49 @@
+{
+  "name": "Cobrança Empresarial",
+  "nodes": [
+    {
+      "parameters": {"triggerOn": "webhook"},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "cobranca-empresarial"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT d.* FROM documentos d WHERE d.caso_id = $1 ORDER BY d.data_documento ASC",
+        "additionalFields": {"queryParameters": "={{ $json.body.caso_id }}"}
+      },
+      "id": "get-docs",
+      "name": "Buscar Documentos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {"postgres": {"id": "postgres-credentials", "name": "PostgreSQL JurisPilot"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Organiza documentos e gera linha do tempo\nconst docs = $input.all().map(item => item.json);\n\nconst notasFiscais = docs.filter(d => {\n  const tipo = d.tipo_documento?.toLowerCase() || '';\n  return tipo.includes('nota') || tipo.includes('nf');\n});\n\nconst boletos = docs.filter(d => {\n  const tipo = d.tipo_documento?.toLowerCase() || '';\n  return tipo.includes('boleto');\n});\n\nconst comprovantes = docs.filter(d => {\n  const tipo = d.tipo_documento?.toLowerCase() || '';\n  return tipo.includes('comprovante');\n});\n\n// Ordena cronologicamente\nconst docsOrdenados = docs.sort((a, b) => {\n  const dateA = new Date(a.data_documento || a.data_upload);\n  const dateB = new Date(b.data_documento || b.data_upload);\n  return dateA - dateB;\n});\n\nreturn {\n  json: {\n    caso_id: $('Webhook Trigger').item.json.body.caso_id,\n    organizacao: {\n      notas_fiscais: notasFiscais.map(d => ({id: d.id, tipo: d.tipo_documento, data: d.data_documento})),\n      boletos: boletos.map(d => ({id: d.id, tipo: d.tipo_documento, data: d.data_documento})),\n      comprovantes: comprovantes.map(d => ({id: d.id, tipo: d.tipo_documento, data: d.data_documento}))\n    },\n    linha_tempo: docsOrdenados.map(d => ({id: d.id, tipo: d.tipo_documento, data: d.data_documento}))\n  }\n};"
+      },
+      "id": "organize-timeline",
+      "name": "Organizar e Timeline",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {"main": [[{"node": "Buscar Documentos", "type": "main", "index": 0}]]},
+    "Buscar Documentos": {"main": [[{"node": "Organizar e Timeline", "type": "main", "index": 0}]]}
+  },
+  "pinData": {},
+  "settings": {"executionOrder": "v1"},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-12-14T12:00:00.000Z",
+  "versionId": "1"
+}
+

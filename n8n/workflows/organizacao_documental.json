@@ -1,0 +1,257 @@
+{
+  "name": "Organização Documental",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerOn": "webhook"
+      },
+      "id": "webhook-upload",
+      "name": "Webhook Upload",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "upload-documento"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": "public",
+        "table": "documentos",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "caso_id": "={{ $json.body.caso_id }}",
+            "nome_arquivo": "={{ $json.body.nome_arquivo }}",
+            "caminho_arquivo": "={{ $json.body.caminho_arquivo }}",
+            "tamanho_arquivo": "={{ $json.body.tamanho_arquivo }}",
+            "mime_type": "={{ $json.body.mime_type }}"
+          }
+        }
+      },
+      "id": "save-documento",
+      "name": "Salvar Documento",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-credentials",
+          "name": "PostgreSQL JurisPilot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/document/process",
+        "authentication": "none",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"documento_id\": \"{{ $json.id }}\",\n  \"caminho_arquivo\": \"{{ $json.caminho_arquivo }}\"\n}",
+        "options": {}
+      },
+      "id": "process-document",
+      "name": "Processar Documento (Python)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": "public",
+        "table": "documentos",
+        "updateKey": "id",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "tipo_documento": "={{ $json.tipo_documento }}",
+            "texto_extraido": "={{ $json.texto_extraido }}",
+            "data_documento": "={{ $json.data_documento }}",
+            "metadados": "={{ $json.metadados }}",
+            "validado": true
+          }
+        }
+      },
+      "id": "update-documento",
+      "name": "Atualizar Documento Processado",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [850, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-credentials",
+          "name": "PostgreSQL JurisPilot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/proof/classify",
+        "authentication": "none",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"documento_info\": {{ $json }}\n}",
+        "options": {}
+      },
+      "id": "classify-proof",
+      "name": "Classificar Prova (Python)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": "public",
+        "table": "documentos",
+        "updateKey": "id",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "classificacao_prova": "={{ $json.classificacao_prova }}",
+            "relevancia": "={{ $json.relevancia }}"
+          }
+        }
+      },
+      "id": "update-classification",
+      "name": "Atualizar Classificação",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1250, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-credentials",
+          "name": "PostgreSQL JurisPilot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/deadline/extract",
+        "authentication": "none",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"documento_info\": {{ $('Atualizar Documento Processado').item.json }},\n  \"tipo_acao\": \"{{ $('Salvar Documento').item.json.tipo_acao }}\"\n}",
+        "options": {}
+      },
+      "id": "extract-deadlines",
+      "name": "Extrair Prazos (Python)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": "public",
+        "table": "prazos",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "caso_id": "={{ $('Salvar Documento').item.json.caso_id }}",
+            "tipo_prazo": "={{ $json.tipo_prazo }}",
+            "data_vencimento": "={{ $json.data_vencimento }}",
+            "data_lembrete": "={{ $json.data_lembrete }}",
+            "descricao": "={{ $json.descricao }}",
+            "documento_relacionado_id": "={{ $('Salvar Documento').item.json.id }}",
+            "status": "pendente"
+          }
+        }
+      },
+      "id": "save-prazos",
+      "name": "Salvar Prazos Extraídos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1650, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-credentials",
+          "name": "PostgreSQL JurisPilot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": "public",
+        "table": "linha_tempo",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "caso_id": "={{ $('Salvar Documento').item.json.caso_id }}",
+            "evento": "Documento recebido: {{ $('Salvar Documento').item.json.nome_arquivo }}",
+            "data_evento": "={{ $('Salvar Documento').item.json.data_upload }}",
+            "documento_relacionado_id": "={{ $('Salvar Documento').item.json.id }}",
+            "tipo_evento": "upload_documento",
+            "descricao": "Documento {{ $('Atualizar Documento Processado').item.json.tipo_documento }} recebido e processado"
+          }
+        }
+      },
+      "id": "add-timeline",
+      "name": "Adicionar à Linha do Tempo",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1850, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-credentials",
+          "name": "PostgreSQL JurisPilot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/checklist/validate",
+        "authentication": "none",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"caso_id\": \"{{ $('Salvar Documento').item.json.caso_id }}\"\n}",
+        "options": {}
+      },
+      "id": "validate-checklist",
+      "name": "Revalidar Checklist",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [2050, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Upload": {
+      "main": [[{"node": "Salvar Documento", "type": "main", "index": 0}]]
+    },
+    "Salvar Documento": {
+      "main": [[{"node": "Processar Documento (Python)", "type": "main", "index": 0}]]
+    },
+    "Processar Documento (Python)": {
+      "main": [[{"node": "Atualizar Documento Processado", "type": "main", "index": 0}]]
+    },
+    "Atualizar Documento Processado": {
+      "main": [[{"node": "Classificar Prova (Python)", "type": "main", "index": 0}]]
+    },
+    "Classificar Prova (Python)": {
+      "main": [[{"node": "Atualizar Classificação", "type": "main", "index": 0}]]
+    },
+    "Atualizar Classificação": {
+      "main": [[{"node": "Extrair Prazos (Python)", "type": "main", "index": 0}]]
+    },
+    "Extrair Prazos (Python)": {
+      "main": [[{"node": "Salvar Prazos Extraídos", "type": "main", "index": 0}]]
+    },
+    "Salvar Prazos Extraídos": {
+      "main": [[{"node": "Adicionar à Linha do Tempo", "type": "main", "index": 0}]]
+    },
+    "Adicionar à Linha do Tempo": {
+      "main": [[{"node": "Revalidar Checklist", "type": "main", "index": 0}]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-12-14T12:00:00.000Z",
+  "versionId": "1"
+}
+
