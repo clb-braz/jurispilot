@@ -112,8 +112,9 @@ for file in "$WORKFLOWS_PATH"/*.json; do
         continue
     fi
     
-    # Prepara payload
-    IMPORT_PAYLOAD=$(echo "$WORKFLOW_CONTENT" | jq -c '{name, nodes, connections, active: false, settings}')
+    # Prepara payload - usa o conteúdo completo do workflow
+    # Remove apenas campos que não são necessários para importação
+    IMPORT_PAYLOAD=$(echo "$WORKFLOW_CONTENT" | sed 's/"active":true/"active":false/g' | sed 's/"id":"[^"]*",//g')
     
     # Importa
     if curl -s -X POST "${HEADERS[@]}" "$N8N_URL/api/v1/workflows" \
